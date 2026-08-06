@@ -53,6 +53,10 @@ services:
         value: "587"
       - key: EMAIL_USE_TLS
         value: "True"
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
 
 databases:
   - name: actserv-db

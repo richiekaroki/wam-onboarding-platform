@@ -76,7 +76,9 @@ class RequestMagicLinkView(APIView):
         # Send email
         try:
             send_magic_link_email(email, token)
-        except Exception:
+            logger.info('Magic link email sent to %s', email)
+        except Exception as e:
+            logger.error('Failed to send magic link email to %s: %s', email, str(e))
             # Don't leak email provider errors
             return Response({'detail': 'If an account exists, a sign-in link has been sent.'})
 
