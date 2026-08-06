@@ -40,23 +40,20 @@ let _isRefreshing = false;
 let _refreshPromise: Promise<string> | null = null;
 
 async function refreshAccessToken(): Promise<string> {
-  const refreshToken = getCookie("refresh_token");
-  if (!refreshToken) throw new Error("No refresh token");
-
   // Deduplicate concurrent refresh attempts
   if (_isRefreshing && _refreshPromise) return _refreshPromise;
 
   _isRefreshing = true;
   _refreshPromise = (async () => {
     try {
+      // Refresh token is HttpOnly cookie — backend reads it automatically
       const response = await axios.post(
         `${API_BASE_URL}/auth/refresh/`,
-        { refresh: refreshToken },
+        {},
         { headers: { "Content-Type": "application/json" } }
       );
-      const { access, refresh } = response.data;
+      const { access } = response.data;
       setCookie("access_token", access, 1);
-      if (refresh) setCookie("refresh_token", refresh, 7);
       return access;
     } finally {
       _isRefreshing = false;
@@ -89,7 +86,8 @@ function setupInterceptors(instance: any) {
           originalRequest &&
           !originalRequest._retry &&
           !originalRequest.url?.includes("/auth/refresh/") &&
-          !originalRequest.url?.includes("/auth/login/")
+          !originalRequest.url?.includes("/auth/magic-link/") &&
+          !originalRequest.url?.includes("/auth/verify-magic-link/")
         ) {
           originalRequest._retry = true;
           try {
@@ -103,7 +101,6 @@ function setupInterceptors(instance: any) {
 
         if (error.response?.status === 401) {
           deleteCookie("access_token");
-          deleteCookie("refresh_token");
           _currentUser = null;
           if (
             typeof window !== "undefined" &&
@@ -119,36 +116,7 @@ function setupInterceptors(instance: any) {
 }
 
 // ── Error message extraction ───────────────────────────────────────────────
-export function extractErrorMessage(error: unknown): string {
-  const err = error as { response?: { status?: number; data?: unknown }; message?: string };
-
-  // 429 rate limit
-  if (err.response?.status === 429) {
-    return "Too many requests. Please wait a moment and try again.";
-  }
-
-  // DRF error response shapes
-  const data = err.response?.data as Record<string, unknown>;
-  if (data && typeof data === "object") {
-    // { detail: "..." }
-    if ("detail" in data && typeof data.detail === "string") {
-      return data.detail;
-    }
-    // { responses: "..." }
-    if ("responses" in data && typeof data.responses === "string") {
-      return data.responses;
-    }
-    // { field: ["error1", "error2"] } — take first error
-    const firstKey = Object.keys(data)[0];
-    const firstVal = data[firstKey];
-    if (firstKey && Array.isArray(firstVal)) {
-      return `${firstKey}: ${firstVal[0]}`;
-    }
-  }
-
-  // Fallback
-  return err.message || "An unexpected error occurred. Please try again.";
-}
+// (extractErrorMessage removed — inline error handling used in components instead)
 
 let _apiInstance: any = null;
 
@@ -190,32 +158,18 @@ export function isAdmin(): boolean {
 }
 
 // ── Auth API ───────────────────────────────────────────────────────────────
-export async function loginUser(credentials: {
-  email: string;
-  password: string;
-}): Promise<AuthUser> {
-  // SimpleJWT expects the field named 'username'
-  const response = await getApiInstance().post("/auth/login/", {
-    username: credentials.email,
-    password: credentials.password,
-  });
-
-  // SimpleJWT returns 'access' and 'refresh' — NOT 'access_token'
-  const { access, refresh, user } = response.data;
-  setCookie("access_token", access, 1);
-  setCookie("refresh_token", refresh, 7);
-  _currentUser = user;
-  return user;
+export async function requestMagicLink(email: string): Promise<void> {
+  await getApiInstance().post("/auth/magic-link/", { email });
 }
 
-export async function registerClient(userData: {
-  email: string;
-  password: string;
-  first_name?: string;
-  last_name?: string;
-}) {
-  const response = await getApiInstance().post("/auth/register/", userData);
-  return response.data;
+export async function verifyMagicLink(token: string): Promise<AuthUser> {
+  const response = await getApiInstance().get(
+    `/auth/verify-magic-link/?token=${encodeURIComponent(token)}`
+  );
+  const { access, user } = response.data;
+  setCookie("access_token", access, 1);
+  _currentUser = user;
+  return user;
 }
 
 export async function loadCurrentUser(): Promise<AuthUser | null> {
@@ -229,9 +183,14 @@ export async function loadCurrentUser(): Promise<AuthUser | null> {
   }
 }
 
-export function logout() {
+export async function logout(): Promise<void> {
+  // Call backend to blacklist refresh token (best-effort, don't block logout)
+  try {
+    await getApiInstance().post("/auth/logout/");
+  } catch {
+    // Ignore errors — clear cookies anyway
+  }
   deleteCookie("access_token");
-  deleteCookie("refresh_token");
   _currentUser = null;
   // Use hard redirect to ensure full page reset and clear all in-memory state
   if (typeof window !== "undefined") {
@@ -240,12 +199,6 @@ export function logout() {
 }
 
 // ── Forms ──────────────────────────────────────────────────────────────────
-export interface PaginatedResponse<T> {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: T[];
-}
 
 export async function getForms(page = 1): Promise<any[]> {
   const response = await getApiInstance().get(`/forms/?page=${page}`);
@@ -349,11 +302,6 @@ export async function getSubmissions(page = 1): Promise<any[]> {
   return [];
 }
 
-export async function getSubmission(id: string) {
-  const response = await getApiInstance().get(`/submissions/${id}/`);
-  return response.data;
-}
-
 export async function updateSubmissionStatus(id: string, status: string) {
   const response = await getApiInstance().patch(`/submissions/${id}/status/`, { status });
   return response.data;
@@ -365,15 +313,5 @@ export async function getNotifications() {
   return Array.isArray(response.data)
     ? response.data
     : (response.data.results ?? []);
-}
-
-export async function markNotificationRead(id: string) {
-  const response = await getApiInstance().patch(`/notifications/${id}/`, { is_read: true });
-  return response.data;
-}
-
-export async function markAllNotificationsRead() {
-  const response = await getApiInstance().post("/notifications/mark-all-read/");
-  return response.data;
 }
 

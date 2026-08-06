@@ -19,8 +19,8 @@ const mockApi = {
 
 // Re-import after mock is set up
 import {
-  loginUser,
-  registerClient,
+  requestMagicLink,
+  verifyMagicLink,
   getForms,
   submitForm,
   getSubmissions,
@@ -38,44 +38,57 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-describe("loginUser", () => {
+describe("requestMagicLink", () => {
   beforeEach(() => {
     mockCookie("");
   });
 
-  it("sends username (not email) to the login endpoint", async () => {
+  it("sends email to the magic-link endpoint", async () => {
     mockApi.post.mockResolvedValueOnce({
-      data: {
-        access:  "access-token-123",   // SimpleJWT field name
-        refresh: "refresh-token-456",
-        user: { id: "1", email: "admin@test.com", role: "admin", is_staff: true,
-                first_name: "Admin", last_name: "User" },
-      },
+      data: { detail: "If an account exists, a sign-in link has been sent." },
     });
 
-    const user = await loginUser({ email: "admin@test.com", password: "pass" });
+    await requestMagicLink("admin@test.com");
 
-    expect(mockApi.post).toHaveBeenCalledWith("/auth/login/", {
-      username: "admin@test.com",  // must be 'username', not 'email'
-      password: "pass",
+    expect(mockApi.post).toHaveBeenCalledWith("/auth/magic-link/", {
+      email: "admin@test.com",
     });
-    expect(user.is_staff).toBe(true);
   });
 
-  it("throws on invalid credentials", async () => {
-    mockApi.post.mockRejectedValueOnce({ response: { status: 401 } });
-    await expect(loginUser({ email: "bad@test.com", password: "wrong" })).rejects.toBeTruthy();
+  it("throws on server error", async () => {
+    mockApi.post.mockRejectedValueOnce({ response: { status: 500 } });
+    await expect(requestMagicLink("bad@test.com")).rejects.toBeTruthy();
   });
 });
 
-describe("registerClient", () => {
-  it("calls the register endpoint with user data", async () => {
-    mockApi.post.mockResolvedValueOnce({ data: { message: "Registration successful." } });
-    await registerClient({ email: "new@test.com", password: "password123" });
-    expect(mockApi.post).toHaveBeenCalledWith("/auth/register/", {
-      email: "new@test.com",
-      password: "password123",
+describe("verifyMagicLink", () => {
+  beforeEach(() => {
+    mockCookie("");
+  });
+
+  it("sends token to verify endpoint and stores access token", async () => {
+    mockApi.get.mockResolvedValueOnce({
+      data: {
+        access: "access-token-123",
+        user: {
+          id: "1", email: "admin@test.com", role: "admin", is_staff: true,
+          first_name: "Admin", last_name: "User",
+        },
+      },
     });
+
+    const user = await verifyMagicLink("test-token-uuid");
+
+    expect(mockApi.get).toHaveBeenCalledWith("/auth/verify-magic-link/?token=test-token-uuid");
+    expect(user.is_staff).toBe(true);
+    expect(user.email).toBe("admin@test.com");
+  });
+
+  it("throws on invalid token", async () => {
+    mockApi.get.mockRejectedValueOnce({
+      response: { status: 400, data: { detail: "Invalid or expired link." } },
+    });
+    await expect(verifyMagicLink("bad-token")).rejects.toBeTruthy();
   });
 });
 

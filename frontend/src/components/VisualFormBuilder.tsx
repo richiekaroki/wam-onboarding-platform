@@ -830,6 +830,7 @@ export default function VisualFormBuilder({ initialSections, onSubmit, onCancel,
   const [dragSource, setDragSource] = useState<{ sectionId: string; fieldIndex: number } | null>(null);
   const [showHelpTip, setShowHelpTip] = useState(true);
   const [fieldSearch, setFieldSearch] = useState("");
+  const [mobileTab, setMobileTab] = useState<"editor" | "preview">("editor");
   const isDirtyRef = useRef(false);
   const initialSectionsRef = useRef(initialSections);
 
@@ -899,15 +900,37 @@ export default function VisualFormBuilder({ initialSections, onSubmit, onCancel,
   };
 
   return (
-    <div style={{ display: "flex", height: "calc(100vh - 4rem)", overflow: "hidden" }}>
+    <div className="vfb-layout">
+      {/* Mobile tab bar */}
+      <div className="vfb-mobile-tabs" role="tablist" aria-label="Form builder views">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mobileTab === "editor"}
+          aria-controls="vfb-editor-panel"
+          className="vfb-mobile-tab"
+          onClick={() => setMobileTab("editor")}
+        >
+          Editor
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mobileTab === "preview"}
+          aria-controls="vfb-preview-panel"
+          className="vfb-mobile-tab"
+          onClick={() => setMobileTab("preview")}
+        >
+          Preview
+        </button>
+      </div>
+
       {/* Editor panel */}
       <div
-        style={{
-          flex: 1,
-          overflow: "auto",
-          padding: "1.5rem",
-          borderRight: "1px solid var(--color-ink-100)",
-        }}
+        id="vfb-editor-panel"
+        role="tabpanel"
+        className="vfb-editor"
+        hidden={mobileTab !== "editor"}
       >
         {/* Contextual help */}
         {showHelpTip ? (
@@ -1043,14 +1066,11 @@ export default function VisualFormBuilder({ initialSections, onSubmit, onCancel,
 
       {/* Preview panel */}
       <div
-        role="region"
+        id="vfb-preview-panel"
+        role="tabpanel"
         aria-label="Live form preview"
-        style={{
-          width: "400px",
-          overflow: "auto",
-          background: "var(--color-surface)",
-          borderLeft: "1px solid var(--color-ink-100)",
-        }}
+        className="vfb-preview"
+        hidden={mobileTab !== "preview"}
       >
         <div
           style={{

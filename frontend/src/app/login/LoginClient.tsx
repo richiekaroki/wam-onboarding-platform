@@ -1,17 +1,15 @@
 // frontend/src/app/login/page.tsx
 "use client";
 
-import { loginUser } from "@/lib/api";
+import { requestMagicLink } from "@/lib/api";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function LoginPage() {
-  const [email, setEmail]     = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState("");
-  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,11 +17,10 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const user = await loginUser({ email, password });
-      // loginUser stores tokens in cookies and sets _currentUser
-      router.push(user.is_staff ? "/admin" : "/forms");
+      await requestMagicLink(email);
+      setSent(true);
     } catch {
-      setError("Invalid email or password. Please try again.");
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -73,86 +70,105 @@ export default function LoginPage() {
       <main className="flex-1 flex items-center justify-center p-8" id="main-content">
         <div className="w-full max-w-md animate-fade-up">
 
-          <div className="mb-10">
-            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "2.25rem", color: "var(--color-ink-900)" }}>
-              Welcome back
-            </h2>
-            <p className="mt-2 text-sm" style={{ color: "var(--color-ink-600)" }}>
-              Sign in to your account to continue
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label htmlFor="email" className="label">Email address</label>
-              <input
-                id="email"
-                type="email"
-                autoComplete="username"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@mrwam.com"
-                required
-                className="input"
-              />
-            </div>
-
-            <div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <label htmlFor="password" className="label" style={{ marginBottom: 0 }}>Password</label>
-                <Link href="/forgot-password" className="text-xs transition-colors" style={{ color: "var(--color-ink-600)" }}>
-                  Forgot your password?
-                </Link>
+          {sent ? (
+            /* ── Check your email ── */
+            <div className="text-center">
+              <div
+                style={{
+                  width: "64px", height: "64px", borderRadius: "50%",
+                  background: "var(--color-status-approved-bg)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  margin: "0 auto 1.5rem",
+                }}
+              >
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-status-approved)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                </svg>
               </div>
-              <input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                className="input"
-              />
-            </div>
-
-            {error && (
-              <p className="text-sm px-4 py-3 bg-red-50 border border-red-200 text-red-600" role="alert">
-                {error}
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: "2rem", color: "var(--color-ink-900)", marginBottom: "0.75rem" }}>
+                Check your email
+              </h2>
+              <p className="text-sm" style={{ color: "var(--color-ink-600)", marginBottom: "2rem" }}>
+                We sent a sign-in link to<br />
+                <strong style={{ color: "var(--color-ink-900)" }}>{email}</strong>
               </p>
-            )}
+              <p className="text-xs" style={{ color: "var(--color-ink-400)", marginBottom: "2rem" }}>
+                The link expires in 10 minutes. Check your spam folder if you don&apos;t see it.
+              </p>
+              <button
+                onClick={() => { setSent(false); setEmail(""); }}
+                className="btn-secondary"
+                style={{ margin: "0 auto" }}
+              >
+                Use a different email
+              </button>
+            </div>
+          ) : (
+            /* ── Email input form ── */
+            <>
+              <div className="mb-10">
+                <h2 style={{ fontFamily: "var(--font-display)", fontSize: "2.25rem", color: "var(--color-ink-900)" }}>
+                  Sign in
+                </h2>
+                <p className="mt-2 text-sm" style={{ color: "var(--color-ink-600)" }}>
+                  Enter your email and we&apos;ll send you a sign-in link
+                </p>
+              </div>
 
-            <button type="submit" disabled={loading} className="btn-primary" style={{ width: "100%", justifyContent: "center", marginTop: "0.5rem" }}>
-              {loading ? (
-                <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <span
-                    className="animate-spin"
-                    style={{
-                      width: "1rem", height: "1rem",
-                      border: "2px solid rgba(255,255,255,0.3)",
-                      borderTopColor: "white",
-                      borderRadius: "50%",
-                      display: "inline-block",
-                    }}
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div>
+                  <label htmlFor="email" className="label">Email address</label>
+                  <input
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    autoFocus
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@mrwam.com"
+                    required
+                    className="input"
                   />
-                  Signing in…
-                </span>
-              ) : (
-                "Sign in"
-              )}
-            </button>
-          </form>
+                </div>
 
-          <p className="mt-8 text-center text-sm" style={{ color: "var(--color-ink-400)" }}>
-            Don&apos;t have an account?{" "}
-            <Link
-              href="/register"
-              className="link-hover"
-              style={{ color: "var(--color-ink-900)", textDecoration: "underline", textUnderlineOffset: "4px", display: "inline-block", padding: "0.5rem 0.25rem" }}
-            >
-              Register here
-            </Link>
-          </p>
+                {error && (
+                  <p className="text-sm px-4 py-3 bg-red-50 border border-red-200 text-red-600" role="alert">
+                    {error}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading || !email}
+                  className="btn-primary"
+                  style={{ width: "100%", justifyContent: "center", marginTop: "0.5rem" }}
+                >
+                  {loading ? (
+                    <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <span
+                        className="animate-spin"
+                        style={{
+                          width: "1rem", height: "1rem",
+                          border: "2px solid var(--color-ink-200)",
+                          borderTopColor: "var(--color-ink-inverse)",
+                          borderRadius: "50%",
+                          display: "inline-block",
+                        }}
+                      />
+                      Sending link…
+                    </span>
+                  ) : (
+                    "Send sign-in link"
+                  )}
+                </button>
+              </form>
+
+              <p className="mt-8 text-center text-xs" style={{ color: "var(--color-ink-400)" }}>
+                No password needed — we&apos;ll email you a secure link
+              </p>
+            </>
+          )}
         </div>
       </main>
     </div>

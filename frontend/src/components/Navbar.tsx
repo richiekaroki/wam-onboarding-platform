@@ -10,12 +10,14 @@ import {
 } from "@/lib/api";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function Navbar() {
   const pathname = usePathname();
   const [ready, setReady] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const hamburgerRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadCurrentUser().finally(() => setReady(true));
@@ -25,6 +27,21 @@ export default function Navbar() {
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
+
+  // Focus first interactive element when mobile drawer opens
+  useEffect(() => {
+    if (mobileOpen && drawerRef.current) {
+      const firstFocusable = drawerRef.current.querySelector<HTMLElement>("a, button");
+      firstFocusable?.focus();
+    }
+  }, [mobileOpen]);
+
+  // Restore focus to hamburger when drawer closes
+  useEffect(() => {
+    if (!mobileOpen && hamburgerRef.current) {
+      hamburgerRef.current.focus();
+    }
+  }, [mobileOpen]);
 
   if (!ready) return null;
 
@@ -146,11 +163,11 @@ export default function Navbar() {
                 Sign in
               </Link>
               <Link
-                href="/register"
+                href="/login"
                 className="btn-primary"
                 style={{ padding: "0.375rem 0.875rem", fontSize: "0.8rem" }}
               >
-                Register
+                Sign in
               </Link>
             </div>
           )}
@@ -158,10 +175,15 @@ export default function Navbar() {
 
         {/* Mobile hamburger button */}
         <button
+          ref={hamburgerRef}
           className="md:hidden flex items-center justify-center"
           onClick={() => setMobileOpen(!mobileOpen)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape" && mobileOpen) setMobileOpen(false);
+          }}
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
           aria-expanded={mobileOpen}
+          aria-controls="mobile-nav-drawer"
           style={{
             width: "44px",
             height: "44px",
@@ -189,7 +211,12 @@ export default function Navbar() {
       {/* Mobile drawer */}
       {mobileOpen && (
         <div
+          ref={drawerRef}
+          id="mobile-nav-drawer"
+          role="dialog"
+          aria-label="Mobile navigation"
           className="md:hidden"
+          onKeyDown={(e) => { if (e.key === "Escape") setMobileOpen(false); }}
           style={{
             borderTop: "1px solid var(--color-ink-100)",
             background: "var(--color-surface-raised)",
@@ -280,11 +307,11 @@ export default function Navbar() {
                 Sign in
               </Link>
               <Link
-                href="/register"
+                href="/login"
                 className="btn-primary"
                 style={{ flex: 1, textAlign: "center", padding: "0.75rem", fontSize: "0.8rem" }}
               >
-                Register
+                Sign in
               </Link>
             </div>
           )}

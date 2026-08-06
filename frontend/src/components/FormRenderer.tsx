@@ -1,7 +1,7 @@
 // frontend/src/components/FormRenderer.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm, UseFormRegister, FieldErrors } from "react-hook-form";
 
 // The backend stores fields as Field model rows returned in the `fields`
@@ -187,7 +187,7 @@ function FieldInput({ field, allFields, register, errors, watchedValues, maxFile
           <input
             type="checkbox"
             {...register(field.key, { required: isRequired ? requiredMsg : false })}
-            className="mt-0.5 h-4 w-4 accent-[var(--color-ink-900)]"
+            className="mt-0.5 h-4 w-4 accent-(--color-ink-900)"
           />
           <span className="text-sm" style={{ color: "var(--color-ink-700)" }}>
             {field.label}
@@ -221,8 +221,8 @@ function FieldInput({ field, allFields, register, errors, watchedValues, maxFile
             })}
             className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4
                        file:border-0 file:text-sm file:font-medium
-                       file:bg-[var(--color-ink-50)] file:text-[var(--color-ink-700)]
-                       hover:file:bg-[var(--color-ink-100)] cursor-pointer"
+                       file:bg-(--color-ink-50) file:text-(--color-ink-700)
+                       hover:file:bg-(--color-ink-100) cursor-pointer"
           />
           <p className="text-xs mt-1" style={{ color: "var(--color-ink-400)" }}>
             Max 5 MB per file · PDF, JPG, PNG, DOC, DOCX · Multiple files allowed
@@ -231,7 +231,7 @@ function FieldInput({ field, allFields, register, errors, watchedValues, maxFile
       )}
 
       {error && (
-        <p className="mt-1.5 text-xs text-red-600">
+        <p role="alert" className="mt-1.5 text-xs text-red-600">
           {error.message as string}
         </p>
       )}
@@ -245,6 +245,7 @@ export default function FormRenderer({ fields, formId, maxFileSize, onSubmit }: 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const errorRef = useRef<HTMLDivElement>(null);
 
   const {
     register,
@@ -255,6 +256,13 @@ export default function FormRenderer({ fields, formId, maxFileSize, onSubmit }: 
   } = useForm<Record<string, unknown>>();
 
   const watchedValues = watch();
+
+  // Focus error banner when submit error appears
+  useEffect(() => {
+    if (submitError && errorRef.current) {
+      errorRef.current.focus();
+    }
+  }, [submitError]);
 
   const onFormSubmit = handleSubmit(async (data) => {
     setIsSubmitting(true);
@@ -310,7 +318,7 @@ export default function FormRenderer({ fields, formId, maxFileSize, onSubmit }: 
       )}
 
       {submitError && (
-        <div className="mb-6 px-4 py-3 bg-red-50 border border-red-200 text-red-800 text-sm">
+        <div ref={errorRef} tabIndex={-1} role="alert" className="mb-6 px-4 py-3 bg-red-50 border border-red-200 text-red-800 text-sm" style={{ outline: "none" }}>
           ✗ {submitError}
         </div>
       )}
@@ -339,8 +347,8 @@ export default function FormRenderer({ fields, formId, maxFileSize, onSubmit }: 
                 className="animate-spin"
                 style={{
                   width: "1rem", height: "1rem",
-                  border: "2px solid rgba(255,255,255,0.3)",
-                  borderTopColor: "white",
+                  border: "2px solid var(--color-ink-200)",
+                  borderTopColor: "var(--color-ink-inverse)",
                   borderRadius: "50%",
                   display: "inline-block",
                 }}

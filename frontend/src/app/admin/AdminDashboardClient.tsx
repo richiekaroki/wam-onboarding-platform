@@ -9,7 +9,6 @@ import {
   loadCurrentUser,
   isAdmin,
   logout,
-  PaginatedResponse,
 } from "@/lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -137,7 +136,6 @@ const [formsRes, subsRes, notifsData] = await Promise.all([
     { label: "Total Forms",    value: forms.length,          href: "#forms"              },
     { label: "Submissions",    value: totalSubs,              href: "#submissions"        },
     { label: "Pending Review", value: pending.length,         href: "#needs-attention"    },
-    { label: "Unread Alerts",  value: unread,                 href: "/admin/notifications"},
   ];
 
   if (loading) {
@@ -187,6 +185,8 @@ const [formsRes, subsRes, notifsData] = await Promise.all([
       {/* Toast notification */}
       {toast && (
         <div
+          role="status"
+          aria-live="polite"
           style={{
             position: "fixed", top: "1rem", right: "1rem", zIndex: 100,
             padding: "0.75rem 1.25rem", borderRadius: "4px",
@@ -233,7 +233,7 @@ const [formsRes, subsRes, notifsData] = await Promise.all([
         <Link href="/" style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", color: "var(--color-ink-900)", textDecoration: "none" }}>
           Mr.Wam
         </Link>
-        <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}>
           <Link href="/admin/forms/create" className="btn-primary" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem" }}>
             + New Form
           </Link>
@@ -249,33 +249,46 @@ const [formsRes, subsRes, notifsData] = await Promise.all([
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(200px, 100%), 1fr))",
             gap: "1rem",
             marginBottom: "3rem",
           }}
         >
-          {statCards.map((s, i) => (
-            <Link
-              key={s.label}
-              href={s.href}
-              className="card-hover animate-fade-up"
-              style={{
-                animationDelay: `${i * 60}ms`,
-              }}
-              role="region"
-              aria-labelledby={`stat-${i}`}
-            >
-              <p
-                id={`stat-${i}`}
-                style={{ fontFamily: "var(--font-body)", fontSize: "2.5rem", fontWeight: 700, color: "var(--color-ink-900)", lineHeight: 1 }}
+          {loading ? (
+            [1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="card"
+                style={{ animation: "pulse 1.5s ease-in-out infinite" }}
               >
-                {s.value}
-              </p>
-              <p className="text-xs font-mono tracking-wide mt-1" style={{ color: "var(--color-ink-400)" }}>
-                {s.label}
-              </p>
-            </Link>
-          ))}
+                <div style={{ height: "2.5rem", width: "4rem", background: "var(--color-ink-100)", borderRadius: "4px", marginBottom: "0.5rem" }} />
+                <div style={{ height: "0.75rem", width: "5rem", background: "var(--color-ink-100)", borderRadius: "4px" }} />
+              </div>
+            ))
+          ) : (
+            statCards.map((s, i) => (
+              <Link
+                key={s.label}
+                href={s.href}
+                className="card-hover animate-fade-up"
+                style={{
+                  animationDelay: `${i * 60}ms`,
+                }}
+                role="region"
+                aria-labelledby={`stat-${i}`}
+              >
+                <p
+                  id={`stat-${i}`}
+                  style={{ fontFamily: "var(--font-body)", fontSize: "2.5rem", fontWeight: 700, color: "var(--color-ink-900)", lineHeight: 1 }}
+                >
+                  {s.value}
+                </p>
+                <p className="text-xs font-mono tracking-wide mt-1" style={{ color: "var(--color-ink-400)" }}>
+                  {s.label}
+                </p>
+              </Link>
+            ))
+          )}
         </div>
 
         {/* ── First-run welcome ── */}
@@ -352,13 +365,15 @@ const [formsRes, subsRes, notifsData] = await Promise.all([
                   <select
                     value={sub.status}
                     onChange={(e) => handleStatusChange(sub.id, e.target.value, sub.status)}
+                    aria-label={`Change status for submission ${sub.id.slice(0, 8)}`}
                     className="input"
                     style={{
                       width: "auto",
                       fontSize: "0.75rem",
                       fontFamily: "var(--font-mono)",
-                      padding: "0.25rem 0.5rem",
+                      padding: "0.5rem 0.75rem",
                       cursor: "pointer",
+                      minHeight: "44px",
                     }}
                   >
                     <option value="submitted">submitted</option>
@@ -367,7 +382,7 @@ const [formsRes, subsRes, notifsData] = await Promise.all([
                     <option value="rejected">rejected</option>
                   </select>
 
-                  <span className="badge badge-submitted">submitted</span>
+                  <span className="badge badge-submitted">● submitted</span>
                 </div>
               ))}
             </div>
@@ -410,7 +425,9 @@ const [formsRes, subsRes, notifsData] = await Promise.all([
 
           {forms.length === 0 ? (
             <div className="card text-center py-12">
-              <div style={{ fontSize: "2rem", marginBottom: "0.75rem" }}>📝</div>
+              <div style={{ marginBottom: "0.75rem", color: "var(--color-ink-300)" }} aria-hidden="true">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+              </div>
               <p className="text-sm font-medium mb-1" style={{ color: "var(--color-ink-700)" }}>
                 No forms yet
               </p>
@@ -480,23 +497,23 @@ const [formsRes, subsRes, notifsData] = await Promise.all([
               marginBottom: "1rem",
             }}
           >
-            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", color: "var(--color-ink-900)" }}>
-              All Submissions
-            </h2>
-            {unread > 0 && (
-              <Link
-                href="/admin/notifications"
-                className="text-xs font-mono tracking-widest uppercase"
-                style={{ color: "var(--color-status-submitted)" }}
-              >
-                {unread} unread alert{unread > 1 ? "s" : ""} →
-              </Link>
-            )}
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", color: "var(--color-ink-900)" }}>
+                All Submissions
+              </h2>
+              {unread > 0 && (
+                <span className="badge badge-submitted" style={{ fontSize: "0.7rem" }}>
+                  {unread} unread
+                </span>
+              )}
+            </div>
           </div>
 
           {submissions.length === 0 ? (
             <div className="card text-center py-12">
-              <div style={{ fontSize: "2rem", marginBottom: "0.75rem" }}>📬</div>
+              <div style={{ marginBottom: "0.75rem", color: "var(--color-ink-300)" }} aria-hidden="true">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+              </div>
               <p className="text-sm font-medium mb-1" style={{ color: "var(--color-ink-700)" }}>
                 No submissions yet
               </p>
@@ -531,13 +548,15 @@ const [formsRes, subsRes, notifsData] = await Promise.all([
                   <select
                     value={sub.status}
                     onChange={(e) => handleStatusChange(sub.id, e.target.value, sub.status)}
+                    aria-label={`Change status for submission ${sub.id.slice(0, 8)}`}
                     className="input"
                     style={{
                       width: "auto",
                       fontSize: "0.75rem",
                       fontFamily: "var(--font-mono)",
-                      padding: "0.25rem 0.5rem",
+                      padding: "0.5rem 0.75rem",
                       cursor: "pointer",
+                      minHeight: "44px",
                     }}
                   >
                     <option value="submitted">submitted</option>
@@ -546,7 +565,7 @@ const [formsRes, subsRes, notifsData] = await Promise.all([
                     <option value="rejected">rejected</option>
                   </select>
 
-                  <span className={`badge badge-${sub.status}`}>{sub.status}</span>
+                  <span className={`badge badge-${sub.status}`}>● {sub.status}</span>
                 </div>
               ))}
             </div>

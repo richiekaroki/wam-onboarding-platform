@@ -106,7 +106,9 @@ export default function FormsList() {
 
         {!loading && !networkError && forms.length === 0 && getCurrentUser() && (
           <div className="card text-center py-16">
-            <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>📋</div>
+            <div style={{ marginBottom: "1rem", color: "var(--color-ink-300)" }} aria-hidden="true">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            </div>
             <p className="text-sm font-medium mb-1" style={{ color: "var(--color-ink-700)" }}>
               No forms assigned yet
             </p>
@@ -128,10 +130,7 @@ export default function FormsList() {
               Create an account to access onboarding forms and track your submissions.
             </p>
             <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
-              <Link href="/register" className="btn-primary" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem" }}>
-                Create account
-              </Link>
-              <Link href="/login" className="btn-secondary" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem" }}>
+              <Link href="/login" className="btn-primary" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem" }}>
                 Sign in
               </Link>
             </div>
@@ -205,10 +204,7 @@ export default function FormsList() {
               Register to save progress and view your submission history.
             </p>
             <div style={{ display: "flex", gap: "0.75rem" }}>
-              <Link href="/register" className="btn-primary" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem" }}>
-                Register
-              </Link>
-              <Link href="/login" className="btn-secondary" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem" }}>
+              <Link href="/login" className="btn-primary" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem" }}>
                 Sign in
               </Link>
             </div>
