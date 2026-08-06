@@ -117,7 +117,7 @@ export default function LoginPage() {
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label htmlFor="email" className="label">Email address</label>
+                  <label htmlFor="email" className="label">Email Address <span style={{ color: "var(--color-gold)" }}>*</span></label>
                   <input
                     id="email"
                     type="email"
@@ -129,6 +129,9 @@ export default function LoginPage() {
                     required
                     className="input"
                   />
+                  <p className="text-xs mt-1.5" style={{ color: "var(--color-ink-400)" }}>
+                    This is how we&apos;ll communicate with you.
+                  </p>
                 </div>
 
                 {error && (
@@ -137,29 +140,35 @@ export default function LoginPage() {
                   </p>
                 )}
 
-                <button
-                  type="submit"
-                  disabled={loading || !email}
-                  style={{ width: "100%", justifyContent: "center", marginTop: "0.5rem", backgroundColor: "#0D1117", color: "#F5F4F0", display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.5rem", fontFamily: "var(--font-body)", fontSize: "0.875rem", fontWeight: 500, letterSpacing: "0.025em", border: "none", borderRadius: "4px", cursor: loading || !email ? "not-allowed" : "pointer", opacity: loading || !email ? 0.4 : 1 }}
-                >
-                  {loading ? (
-                    <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <span
-                        className="animate-spin"
-                        style={{
-                          width: "1rem", height: "1rem",
-                          border: "2px solid var(--color-ink-200)",
-                          borderTopColor: "var(--color-ink-inverse)",
-                          borderRadius: "50%",
-                          display: "inline-block",
-                        }}
-                      />
-                      Sending link…
-                    </span>
-                  ) : (
-                    "Send sign-in link"
-                  )}
-                </button>
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1rem" }}>
+                  <Link href="/"
+                    style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.5rem", border: "1px solid #C9CDD4", color: "#1F2937", fontSize: "0.875rem", fontWeight: 500, background: "transparent", cursor: "pointer", borderRadius: "4px", textDecoration: "none" }}>
+                    ◄ Cancel
+                  </Link>
+                  <button
+                    type="submit"
+                    disabled={loading || !email}
+                    style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.5rem", border: "1px solid #C9A84C", color: "#C9A84C", fontSize: "0.875rem", fontWeight: 500, background: "transparent", cursor: loading || !email ? "not-allowed" : "pointer", borderRadius: "4px", opacity: loading || !email ? 0.4 : 1, letterSpacing: "0.05em", textTransform: "uppercase" }}
+                  >
+                    {loading ? (
+                      <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <span
+                          className="animate-spin"
+                          style={{
+                            width: "1rem", height: "1rem",
+                            border: "2px solid #C9CDD4",
+                            borderTopColor: "#C9A84C",
+                            borderRadius: "50%",
+                            display: "inline-block",
+                          }}
+                        />
+                        Sending…
+                      </span>
+                    ) : (
+                      <>Next ▸</>
+                    )}
+                  </button>
+                </div>
               </form>
             </>
           )}
