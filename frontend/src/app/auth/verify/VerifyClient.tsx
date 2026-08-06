@@ -78,7 +78,7 @@ function VerifyInner() {
         <p className="text-sm" style={{ color: "var(--color-ink-600)", marginBottom: "2rem" }}>
           {errorMsg}
         </p>
-        <Link href="/login" className="btn-primary" style={{ display: "inline-flex" }}>
+        <Link href="/login" className="btn-primary" style={{ display: "inline-flex", backgroundColor: "var(--color-ink-900)", color: "var(--color-ink-inverse)" }}>
           Request a new link
         </Link>
       </div>

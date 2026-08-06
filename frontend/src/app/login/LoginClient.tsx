@@ -99,7 +99,7 @@ export default function LoginPage() {
               <button
                 onClick={() => { setSent(false); setEmail(""); }}
                 className="btn-secondary"
-                style={{ margin: "0 auto" }}
+                style={{ margin: "0 auto", borderColor: "var(--color-ink-200)", color: "var(--color-ink-700)", backgroundColor: "transparent" }}
               >
                 Use a different email
               </button>
@@ -142,7 +142,7 @@ export default function LoginPage() {
                   type="submit"
                   disabled={loading || !email}
                   className="btn-primary"
-                  style={{ width: "100%", justifyContent: "center", marginTop: "0.5rem" }}
+                  style={{ width: "100%", justifyContent: "center", marginTop: "0.5rem", backgroundColor: "var(--color-ink-900)", color: "var(--color-ink-inverse)" }}
                 >
                   {loading ? (
                     <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>

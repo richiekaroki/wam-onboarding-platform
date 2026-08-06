@@ -151,7 +151,7 @@ function EditFormPageInner() {
       <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--color-surface)" }}>
         <div className="card text-center py-16">
           <p style={{ color: "var(--color-ink-400)" }}>{error || "Form not found."}</p>
-          <button onClick={() => router.push("/admin")} className="btn-secondary mt-6">← Back</button>
+          <button onClick={() => router.push("/admin")} className="btn-secondary mt-6" style={{ borderColor: "var(--color-ink-200)", color: "var(--color-ink-700)", backgroundColor: "transparent" }}>← Back</button>
         </div>
       </div>
     );

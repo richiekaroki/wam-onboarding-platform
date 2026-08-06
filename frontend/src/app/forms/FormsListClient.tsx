@@ -98,7 +98,7 @@ export default function FormsList() {
             <p className="text-xs mb-4" style={{ color: "var(--color-ink-400)" }}>
               Check your connection and try again.
             </p>
-            <button onClick={() => window.location.reload()} className="btn-primary text-xs">
+            <button onClick={() => window.location.reload()} className="btn-primary text-xs" style={{ backgroundColor: "var(--color-ink-900)", color: "var(--color-ink-inverse)" }}>
               Retry
             </button>
           </div>
@@ -130,7 +130,7 @@ export default function FormsList() {
               Create an account to access onboarding forms and track your submissions.
             </p>
             <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
-              <Link href="/login" className="btn-primary" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem" }}>
+              <Link href="/login" className="btn-primary" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem", backgroundColor: "var(--color-ink-900)", color: "var(--color-ink-inverse)" }}>
                 Sign in
               </Link>
             </div>
@@ -204,7 +204,7 @@ export default function FormsList() {
               Register to save progress and view your submission history.
             </p>
             <div style={{ display: "flex", gap: "0.75rem" }}>
-              <Link href="/login" className="btn-primary" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem" }}>
+              <Link href="/login" className="btn-primary" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem", backgroundColor: "var(--color-ink-900)", color: "var(--color-ink-inverse)" }}>
                 Sign in
               </Link>
             </div>

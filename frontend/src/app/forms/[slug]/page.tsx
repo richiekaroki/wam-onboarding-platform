@@ -83,7 +83,7 @@ export default function ClientFormPage() {
       <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--color-surface)" }}>
         <div className="card text-center py-16 max-w-md">
           <p className="text-sm" style={{ color: "var(--color-ink-400)" }}>{error ?? "Form not found."}</p>
-          <button onClick={() => router.push("/forms")} className="btn-secondary mt-6">
+          <button onClick={() => router.push("/forms")} className="btn-secondary mt-6" style={{ borderColor: "var(--color-ink-200)", color: "var(--color-ink-700)", backgroundColor: "transparent" }}>
             ← Back to forms
           </button>
         </div>
@@ -131,6 +131,7 @@ export default function ClientFormPage() {
             <button
               onClick={() => router.push("/forms")}
               className="btn-secondary mt-8"
+              style={{ borderColor: "var(--color-ink-200)", color: "var(--color-ink-700)", backgroundColor: "transparent" }}
             >
               Submit another form
             </button>

@@ -171,7 +171,7 @@ const [formsRes, subsRes, notifsData] = await Promise.all([
           <p className="text-xs mb-4" style={{ color: "var(--color-ink-400)" }}>
             {fetchErrorMsg}
           </p>
-          <button onClick={() => window.location.reload()} className="btn-primary text-xs">
+          <button onClick={() => window.location.reload()} className="btn-primary text-xs" style={{ backgroundColor: "var(--color-ink-900)", color: "var(--color-ink-inverse)" }}>
             Retry
           </button>
         </div>
@@ -234,10 +234,10 @@ const [formsRes, subsRes, notifsData] = await Promise.all([
           Mr.Wam
         </Link>
         <div style={{ display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}>
-          <Link href="/admin/forms/create" className="btn-primary" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem" }}>
+          <Link href="/admin/forms/create" className="btn-primary" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem", backgroundColor: "var(--color-ink-900)", color: "var(--color-ink-inverse)" }}>
             + New Form
           </Link>
-          <button onClick={logout} className="btn-secondary" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem" }}>
+          <button onClick={logout} className="btn-secondary" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem", borderColor: "var(--color-ink-200)", color: "var(--color-ink-700)", backgroundColor: "transparent" }}>
             Sign out
           </button>
         </div>
@@ -434,7 +434,7 @@ const [formsRes, subsRes, notifsData] = await Promise.all([
               <p className="text-xs mb-4" style={{ color: "var(--color-ink-400)", maxWidth: "320px", margin: "0 auto" }}>
                 Create your first onboarding form to start collecting KYC, loan applications, or investment declarations from clients.
               </p>
-              <Link href="/admin/forms/create" className="btn-primary" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem" }}>
+              <Link href="/admin/forms/create" className="btn-primary" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem", backgroundColor: "var(--color-ink-900)", color: "var(--color-ink-inverse)" }}>
                 Create your first form →
               </Link>
             </div>
@@ -581,7 +581,7 @@ const [formsRes, subsRes, notifsData] = await Promise.all([
                   }}
                   disabled={subPage === 0}
                   className="btn-secondary"
-                  style={{ fontSize: "0.75rem", padding: "0.375rem 0.75rem", opacity: subPage === 0 ? 0.4 : 1 }}
+                  style={{ fontSize: "0.75rem", padding: "0.375rem 0.75rem", opacity: subPage === 0 ? 0.4 : 1, borderColor: "var(--color-ink-200)", color: "var(--color-ink-700)", backgroundColor: "transparent" }}
                 >
                   ← Previous
                 </button>
@@ -597,7 +597,7 @@ const [formsRes, subsRes, notifsData] = await Promise.all([
                   }}
                   disabled={subPage >= totalPages - 1}
                   className="btn-secondary"
-                  style={{ fontSize: "0.75rem", padding: "0.375rem 0.75rem", opacity: subPage >= totalPages - 1 ? 0.4 : 1 }}
+                  style={{ fontSize: "0.75rem", padding: "0.375rem 0.75rem", opacity: subPage >= totalPages - 1 ? 0.4 : 1, borderColor: "var(--color-ink-200)", color: "var(--color-ink-700)", backgroundColor: "transparent" }}
                 >
                   Next →
                 </button>

@@ -340,6 +340,7 @@ export default function FormRenderer({ fields, formId, maxFileSize, onSubmit }: 
           type="submit"
           disabled={isSubmitting}
           className="btn-primary w-full justify-center mt-2"
+          style={{ backgroundColor: "var(--color-ink-900)", color: "var(--color-ink-inverse)" }}
         >
           {isSubmitting ? (
             <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
