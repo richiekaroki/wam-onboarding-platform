@@ -9,10 +9,11 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-    TokenVerifyView,
+from users.auth_views import (
+    CustomRefreshView,
+    LogoutView,
+    RequestMagicLinkView,
+    VerifyMagicLinkView,
 )
 
 
@@ -32,10 +33,11 @@ urlpatterns = [
     # ── Django admin ────────────────────────────────────────────────────────
     path("admin/", admin.site.urls),
 
-    # ── Auth ────────────────────────────────────────────────────────────────
-    path("api/auth/login/",   TokenObtainPairView.as_view(),  name="token-obtain"),
-    path("api/auth/refresh/", TokenRefreshView.as_view(),     name="token-refresh"),
-    path("api/auth/verify/",  TokenVerifyView.as_view(),      name="token-verify"),
+    # ── Auth (magic link) ──────────────────────────────────────────────────
+    path("api/auth/magic-link/",       RequestMagicLinkView.as_view(),  name="request-magic-link"),
+    path("api/auth/verify-magic-link/", VerifyMagicLinkView.as_view(), name="verify-magic-link"),
+    path("api/auth/refresh/",          CustomRefreshView.as_view(),     name="token-refresh"),
+    path("api/auth/logout/",           LogoutView.as_view(),            name="token-logout"),
 
     # Registration and /me/ (users app)
     path("api/auth/", include("users.urls")),

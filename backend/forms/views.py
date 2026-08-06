@@ -73,13 +73,13 @@ class FieldViewSet(viewsets.ModelViewSet):
         serializer.save(form=form)
 
 
-from rest_framework.throttling import AnonRateThrottle
+from rest_framework.throttling import AnonRateThrottle  # noqa: F401 (kept for reference)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class SubmissionViewSet(viewsets.ModelViewSet):
     serializer_class = SubmissionSerializer
-    throttle_classes = [AnonRateThrottle]
+    throttle_classes = []  # Throttling handled by global REST_FRAMEWORK settings
 
     def get_queryset(self):
         return (

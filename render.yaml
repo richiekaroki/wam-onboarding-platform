@@ -12,7 +12,7 @@
 #
 # After first deploy, run in Render Shell:
 #   python manage.py migrate --noinput
-#   python manage.py createsuperuser
+#   python manage.py create_initial_admin
 
 services:
   - type: web
@@ -26,21 +26,33 @@ services:
       - key: DEBUG
         value: "False"
       - key: SECRET_KEY
-        generateValue: true  # Render auto-generates and stores securely
+        generateValue: true
       - key: DATABASE_URL
         fromDatabase:
           name: actserv-db
           property: connectionString
       - key: REDIS_URL
-        sync: false  # Must be set manually from Upstash dashboard
+        sync: false
       - key: ALLOWED_HOSTS
         value: actserv-backend.onrender.com
       - key: CORS_ALLOWED_ORIGINS
         value: https://onboarding-frontend.vercel.app
+      - key: FRONTEND_URL
+        value: https://onboarding-frontend.vercel.app
+      - key: DJANGO_ADMIN_EMAIL
+        value: admin@actserv.local
       - key: DEFAULT_FROM_EMAIL
         value: no-reply@actserv.local
       - key: ADMIN_NOTIFICATION_EMAILS
         value: admin@actserv.local
+      - key: EMAIL_BACKEND
+        value: django.core.mail.backends.smtp.EmailBackend
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USE_TLS
+        value: "True"
 
 databases:
   - name: actserv-db

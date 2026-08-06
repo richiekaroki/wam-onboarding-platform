@@ -39,6 +39,8 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - ALLOWED_HOSTS=localhost,127.0.0.1,django
       - CORS_ALLOWED_ORIGINS=http://localhost:3000
+      - FRONTEND_URL=http://localhost:3000
+      - DJANGO_ADMIN_EMAIL=admin@mrwam.com
     volumes:
       # Mount source for live reload in development
       - ./backend:/app
@@ -55,6 +57,7 @@ services:
     # Local dev: use runserver for auto-reload. Production image uses gunicorn.
     command: >
       sh -c "python manage.py migrate --noinput &&
+             python manage.py create_initial_admin &&
              python manage.py runserver 0.0.0.0:8000"
 
   # ── Celery worker ────────────────────────────────────────────────────────

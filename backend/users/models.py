@@ -2,6 +2,7 @@
 import uuid
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
 
 class CustomUser(AbstractUser):
@@ -22,3 +23,30 @@ class CustomUser(AbstractUser):
 
     def __str__(self) -> str:
         return f"{self.email} ({self.get_role_display()})"
+
+
+class MagicLinkToken(models.Model):
+    """One-time magic link token for passwordless authentication."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    email = models.EmailField(db_index=True)
+    token = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used = models.BooleanField(default=False)
+
+    def is_expired(self) -> bool:
+        return timezone.now() > self.expires_at
+
+    def mark_used(self) -> None:
+        self.used = True
+        self.save(update_fields=['used'])
+
+    @classmethod
+    def create_for_email(cls, email: str, ttl_minutes: int = 10) -> "MagicLinkToken":
+        return cls.objects.create(
+            email=email.lower().strip(),
+            expires_at=timezone.now() + timezone.timedelta(minutes=ttl_minutes),
+        )
+
+    class Meta:
+        ordering = ['-created_at']

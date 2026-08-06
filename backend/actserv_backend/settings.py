@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'drf_spectacular',
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'forms',
     'notifications',
@@ -120,12 +121,8 @@ else:
     }
 
 # ===== PASSWORD VALIDATION =====
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
+# Disabled — passwordless magic link auth; passwords are never used
+AUTH_PASSWORD_VALIDATORS = []
 
 # ===== I18N =====
 LANGUAGE_CODE = 'en-gb'
@@ -180,6 +177,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'notifications.tasks.check_escalating_alerts',
         'schedule': timedelta(hours=24),  # run every 24 hours
     },
+    'cleanup-expired-magic-links': {
+        'task': 'notifications.tasks.cleanup_expired_magic_links',
+        'schedule': timedelta(hours=1),  # run every hour
+    },
 }
 
 # Ensure Redis broker is configured in production
@@ -192,6 +193,9 @@ CORS_ALLOWED_ORIGINS = [
     for o in os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
 ]
 CORS_ALLOW_CREDENTIALS = True
+
+# Frontend URL for magic link redirects
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 
 # Warn if CORS is still pointing at localhost in production
 if not DEBUG and any('localhost' in o for o in CORS_ALLOWED_ORIGINS):

@@ -230,6 +230,19 @@ def check_escalating_alerts() -> str:
     return f"Processed {processed} escalation(s)"
 
 
+@shared_task
+def cleanup_expired_magic_links() -> str:
+    """Delete expired and used magic link tokens."""
+    from django.db import models
+    from users.models import MagicLinkToken
+
+    deleted_count, _ = MagicLinkToken.objects.filter(
+        models.Q(expires_at__lt=now()) | models.Q(used=True)
+    ).delete()
+    logger.info("Cleaned up %d expired/used magic link tokens", deleted_count)
+    return f"Deleted {deleted_count} magic link tokens"
+
+
 @shared_task(bind=True, max_retries=3)
 def send_escalation_email(
     self,
