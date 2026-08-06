@@ -43,7 +43,7 @@ export default function LoginPage() {
             className="text-xs font-mono tracking-widest uppercase mb-12"
             style={{ color: "var(--color-gold)", textDecoration: "none", display: "block" }}
           >
-            Mr.Wam Ltd
+            Mr.Wam
           </Link>
           <h1
             className="text-6xl font-semibold leading-tight"
@@ -98,8 +98,7 @@ export default function LoginPage() {
               </p>
               <button
                 onClick={() => { setSent(false); setEmail(""); }}
-                className="btn-secondary"
-                style={{ margin: "0 auto", borderColor: "var(--color-ink-200)", color: "var(--color-ink-700)", backgroundColor: "transparent" }}
+                style={{ margin: "0 auto", display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.5rem", border: "1px solid #C9CDD4", color: "#1F2937", fontSize: "0.875rem", fontWeight: 500, background: "transparent", cursor: "pointer", borderRadius: "4px" }}
               >
                 Use a different email
               </button>
@@ -141,8 +140,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading || !email}
-                  className="btn-primary"
-                  style={{ width: "100%", justifyContent: "center", marginTop: "0.5rem", backgroundColor: "var(--color-ink-900)", color: "var(--color-ink-inverse)" }}
+                  style={{ width: "100%", justifyContent: "center", marginTop: "0.5rem", backgroundColor: "#0D1117", color: "#F5F4F0", display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.5rem", fontFamily: "var(--font-body)", fontSize: "0.875rem", fontWeight: 500, letterSpacing: "0.025em", border: "none", borderRadius: "4px", cursor: loading || !email ? "not-allowed" : "pointer", opacity: loading || !email ? 0.4 : 1 }}
                 >
                   {loading ? (
                     <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
