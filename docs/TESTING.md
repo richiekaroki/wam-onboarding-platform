@@ -34,7 +34,7 @@ pytest tests/test_notifications.py -v
 | File | Tests |
 |------|-------|
 | `tests/test_forms_api.py` | Form CRUD, permissions, field management |
-| `tests/test_auth.py` | JWT login, register, token refresh |
+| `tests/test_auth.py` | Magic link request, verify, token refresh, logout |
 | `tests/test_submissions_api.py` | Submission creation, file upload, status |
 | `tests/test_notifications.py` | Email alerts, escalation tasks |
 | `tests/test_models.py` | Model methods, relationships |
@@ -67,12 +67,12 @@ Browser-based testing to verify UI renders correctly across pages and screen siz
 
 ### Test Flow
 
-1. **Home page** — Verify unauthenticated state shows "Sign in" / "Register"
-2. **Login** — Test logo link, form submission, redirect to admin
-3. **Admin dashboard** — Verify stats, empty state, navigation
-4. **Logout** — Confirm cookies cleared, redirect to login
-5. **Auth guard** — Verify `/admin` blocks access after logout
-6. **Register** — Verify form renders correctly
+1. **Home page** — Verify unauthenticated state shows "Sign in"
+2. **Login** — Test email input, magic link request, redirect to "check your email"
+3. **Verify** — Test magic link callback, auto-login, redirect to dashboard
+4. **Admin dashboard** — Verify stats, empty state, navigation
+5. **Logout** — Confirm cookies cleared, redirect to login
+6. **Auth guard** — Verify `/admin` blocks access after logout
 7. **Forms page** — Verify "Sign in" shows when unauthenticated
 8. **Mobile** — Test responsive layout at 375px width
 
