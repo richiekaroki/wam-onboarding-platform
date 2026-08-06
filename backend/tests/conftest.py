@@ -15,24 +15,28 @@ def api_client():
 
 @pytest.fixture
 def admin_user(db):
-    return User.objects.create_superuser(
+    user = User.objects.create_superuser(
         username='admin@test.com',
         email='admin@test.com',
-        password='StrongPass123!',
         role='admin',
         is_staff=True,
     )
+    user.set_unusable_password()
+    user.save()
+    return user
 
 
 @pytest.fixture
 def client_user(db):
-    return User.objects.create_user(
+    user = User.objects.create_user(
         username='client@test.com',
         email='client@test.com',
-        password='StrongPass123!',
         role='client',
         is_staff=False,
     )
+    user.set_unusable_password()
+    user.save()
+    return user
 
 
 @pytest.fixture
@@ -65,3 +69,12 @@ def kyc_form(db):
     Field.objects.create(form=form, key='id_number', label='ID Number',  field_type='text', required=True,  order=2)
     Field.objects.create(form=form, key='notes',     label='Additional Notes', field_type='text', required=False, order=3)
     return form
+
+
+@pytest.fixture(autouse=True)
+def _disable_throttling(settings):
+    settings.REST_FRAMEWORK = {
+        **settings.REST_FRAMEWORK,
+        'DEFAULT_THROTTLE_CLASSES': [],
+        'DEFAULT_THROTTLE_RATES': {},
+    }

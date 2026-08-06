@@ -124,3 +124,22 @@ class TestNotificationsApi:
     def test_user_cannot_access_another_users_notification(self, auth_client, admin_user, basic_form):
         notif = self._create_notification(admin_user, basic_form)
         assert auth_client.get(f'{NOTIFICATIONS_URL}{notif.id}/').status_code == 404
+
+
+# ── Mark-all-read (standalone, from notifications app) ───────────────────────
+
+@pytest.mark.django_db
+def test_mark_all_read_notifications(auth_client, client_user):
+    Notification.objects.create(user=client_user, type='system', title='Test 1', message='msg 1')
+    Notification.objects.create(user=client_user, type='system', title='Test 2', message='msg 2')
+    other = client_user.__class__.objects.create_user(username='other@test.com', email='other@test.com', role='client')
+    other.set_unusable_password()
+    other.save()
+    Notification.objects.create(user=other, type='system', title='Other', message='other')
+    url = '/api/notifications/mark-all-read/'
+    resp = auth_client.post(url)
+    assert resp.status_code == 200
+    result = resp.json()
+    assert result['marked_read'] == 2
+    assert Notification.objects.filter(user=client_user, is_read=False).count() == 0
+    assert Notification.objects.filter(user=other, is_read=False).count() == 1

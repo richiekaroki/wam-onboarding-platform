@@ -134,3 +134,32 @@ def test_delete_form_with_submissions_is_blocked(admin_client, basic_form):
     assert response.status_code in (400, 409, 500)
     from forms.models import Form
     assert Form.objects.filter(slug='basic-form').exists()
+
+
+# ── Field API ─────────────────────────────────────────────────────────────────
+
+@pytest.mark.django_db
+def test_field_list(admin_client, basic_form):
+    from forms.models import Field
+    Field.objects.create(form=basic_form, key='name', label='Name', field_type='text', required=True, order=1)
+    Field.objects.create(form=basic_form, key='email', label='Email', field_type='email', required=False, order=2)
+    url = '/api/forms/basic-form/fields/'
+    resp = admin_client.get(url)
+    assert resp.status_code == 200
+    data = resp.json()
+    fields = data if isinstance(data, list) else data.get('results', data)
+    assert isinstance(fields, list)
+    returned_keys = {item['key'] for item in fields}
+    assert {'name', 'email'} == returned_keys
+
+
+@pytest.mark.django_db
+def test_field_detail(admin_client, basic_form):
+    from forms.models import Field
+    field = Field.objects.create(form=basic_form, key='age', label='Age', field_type='number', required=False, order=1)
+    url = f'/api/forms/basic-form/fields/{field.id}/'
+    resp = admin_client.get(url)
+    assert resp.status_code == 200
+    json = resp.json()
+    assert json['key'] == 'age'
+    assert json['field_type'] == 'number'
