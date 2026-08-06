@@ -73,12 +73,6 @@ export default function HomePage() {
               </>
             ) : (
               <>
-                <Link href="/login" className="nav-link"
-                  style={{ fontSize:"0.72rem", color:"var(--color-ink-inverse-dim)",
-                    padding:"0.5rem 1rem", border:"1px solid var(--color-border-inverse)",
-                    letterSpacing:"0.1em", textTransform:"uppercase", textDecoration:"none", transition:"color 0.2s, border-color 0.2s" }}>
-                  Sign in
-                </Link>
                 <Link href="/login" className="cta-primary"
                   style={{ fontSize:"0.72rem", color:"var(--color-ink-900)", background:"var(--color-gold-inverse)",
                     padding:"0.5rem 1.25rem", letterSpacing:"0.1em", textTransform:"uppercase",
@@ -139,13 +133,6 @@ export default function HomePage() {
               </div>
             ) : (
               <div style={{ display:"flex", flexDirection:"column", gap:"0.5rem" }}>
-                <Link href="/login" className="nav-link"
-                  style={{ fontSize:"0.8rem", color:"var(--color-ink-inverse-dim)",
-                    padding:"0.75rem 1rem", border:"1px solid var(--color-border-inverse)",
-                    letterSpacing:"0.1em", textTransform:"uppercase", textDecoration:"none",
-                    textAlign:"center", borderRadius:"4px", transition:"color 0.2s, border-color 0.2s" }}>
-                  Sign in
-                </Link>
                 <Link href="/login" className="cta-primary"
                   style={{ fontSize:"0.8rem", color:"var(--color-ink-900)", background:"var(--color-gold-inverse)",
                     padding:"0.75rem 1rem", letterSpacing:"0.1em", textTransform:"uppercase",
