@@ -163,10 +163,6 @@ export default function LoginPage() {
                   )}
                 </button>
               </form>
-
-              <p className="mt-8 text-center text-xs" style={{ color: "var(--color-ink-400)" }}>
-                No password needed — we&apos;ll email you a secure link
-              </p>
             </>
           )}
         </div>

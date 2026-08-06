@@ -435,16 +435,6 @@ export default function HomePage() {
               borderRadius:"4px", transition:"background 0.2s" }}>
             Get started free →
           </Link>
-          <Link href="/forms"
-            className="cta-secondary"
-            style={{ display:"inline-flex", alignItems:"center",
-              background:"transparent", color:"var(--color-surface-dark)",
-              border:"1px solid rgba(10,10,10,0.3)",
-              padding:"1rem 2.5rem", fontSize:"0.8rem",
-              letterSpacing:"0.08em", textDecoration:"none", textTransform:"uppercase",
-              borderRadius:"4px", transition:"border-color 0.2s, color 0.2s" }}>
-            View demo forms
-          </Link>
         </div>
         <p style={{ fontSize:"0.72rem", color:"rgba(10,10,10,0.6)",
           marginTop:"1.5rem", fontFamily:"var(--font-body)" }}>
