@@ -1,12 +1,14 @@
+import json
+import urllib.request
+
 from django.conf import settings
-from django.core.mail import send_mail
 from django.template.loader import render_to_string
 
 from .models import MagicLinkToken
 
 
 def send_magic_link_email(email: str, token: MagicLinkToken) -> None:
-    """Send magic link email via Brevo SMTP."""
+    """Send magic link email via Brevo HTTP API (bypasses SMTP port blocking)."""
     link = f"{settings.FRONTEND_URL}/auth/verify?token={token.token}"
 
     html_message = render_to_string('users/magic_link_email.html', {'link': link})
@@ -17,11 +19,26 @@ def send_magic_link_email(email: str, token: MagicLinkToken) -> None:
         f'If you did not request this, you can safely ignore this email.'
     )
 
-    send_mail(
-        subject='Sign in to Mr.Wam',
-        message=plain_message,
-        from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@actserv.local'),
-        recipient_list=[email],
-        html_message=html_message,
-        fail_silently=False,
+    from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'karokirichard522@gmail.com')
+
+    payload = json.dumps({
+        "sender": {"email": from_email, "name": "Mr.Wam"},
+        "to": [{"email": email}],
+        "subject": "Sign in to Mr.Wam",
+        "htmlContent": html_message,
+        "textContent": plain_message,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        "https://api.brevo.com/v3/smtp/email",
+        data=payload,
+        headers={
+            "accept": "application/json",
+            "content-type": "application/json",
+            "api-key": settings.BREVO_API_KEY,
+        },
+        method="POST",
     )
+
+    with urllib.request.urlopen(req, timeout=10) as resp:
+        resp.read()
