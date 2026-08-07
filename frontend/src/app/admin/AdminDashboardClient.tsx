@@ -171,7 +171,7 @@ const [formsRes, subsRes, notifsData] = await Promise.all([
           <p className="text-xs mb-4" style={{ color: "var(--color-ink-400)" }}>
             {fetchErrorMsg}
           </p>
-          <button onClick={() => window.location.reload()} className="btn-primary text-xs" style={{ backgroundColor: "var(--color-ink-900)", color: "var(--color-ink-inverse)" }}>
+          <button onClick={() => window.location.reload()} style={{ padding: "0.5rem 1rem", fontSize: "0.8rem", backgroundColor: "#C9A84C", color: "#0D1117", fontWeight: 500, borderRadius: "4px", cursor: "pointer", border: "none", letterSpacing: "0.025em" }}>
             Retry
           </button>
         </div>
@@ -234,10 +234,10 @@ const [formsRes, subsRes, notifsData] = await Promise.all([
           Mr.Wam
         </Link>
         <div style={{ display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}>
-          <Link href="/admin/forms/create" className="btn-primary" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem", backgroundColor: "var(--color-ink-900)", color: "var(--color-ink-inverse)" }}>
+          <Link href="/admin/forms/create" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem", backgroundColor: "#C9A84C", color: "#0D1117", fontWeight: 500, borderRadius: "4px", textDecoration: "none", letterSpacing: "0.025em" }}>
             + New Form
           </Link>
-          <button onClick={logout} className="btn-secondary" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem", borderColor: "var(--color-ink-200)", color: "var(--color-ink-700)", backgroundColor: "transparent" }}>
+          <button onClick={logout} style={{ padding: "0.5rem 1rem", fontSize: "0.8rem", border: "1px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.8)", backgroundColor: "transparent", fontWeight: 500, borderRadius: "4px", cursor: "pointer" }}>
             Sign out
           </button>
         </div>
@@ -434,7 +434,7 @@ const [formsRes, subsRes, notifsData] = await Promise.all([
               <p className="text-xs mb-4" style={{ color: "var(--color-ink-400)", maxWidth: "320px", margin: "0 auto" }}>
                 Create your first onboarding form to start collecting KYC, loan applications, or investment declarations from clients.
               </p>
-              <Link href="/admin/forms/create" className="btn-primary" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem", backgroundColor: "var(--color-ink-900)", color: "var(--color-ink-inverse)" }}>
+              <Link href="/admin/forms/create" style={{ padding: "0.5rem 1rem", fontSize: "0.8rem", backgroundColor: "#C9A84C", color: "#0D1117", fontWeight: 500, borderRadius: "4px", textDecoration: "none", letterSpacing: "0.025em" }}>
                 Create your first form →
               </Link>
             </div>
