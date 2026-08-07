@@ -23,5 +23,5 @@ def send_magic_link_email(email: str, token: MagicLinkToken) -> None:
         from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@mrwam.com'),
         recipient_list=[email],
         html_message=html_message,
-        fail_silently=False,
+        fail_silently=True,
     )
