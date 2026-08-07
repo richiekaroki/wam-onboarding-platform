@@ -269,6 +269,7 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '').strip()
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '').strip().strip('"').strip("'")
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'no-reply@actserv.local').strip().strip('"').strip("'")
 EMAIL_TIMEOUT = 10  # seconds — prevent hanging SMTP from crashing gunicorn workers
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
 ADMIN_NOTIFICATION_EMAILS = [
     e.strip()
     for e in os.environ.get('ADMIN_NOTIFICATION_EMAILS', 'admin@actserv.local').split(',')

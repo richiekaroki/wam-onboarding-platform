@@ -1,12 +1,12 @@
 from django.conf import settings
-from django.core.mail import send_mail
 from django.template.loader import render_to_string
+import resend
 
 from .models import MagicLinkToken
 
 
 def send_magic_link_email(email: str, token: MagicLinkToken) -> None:
-    """Send magic link email using Django template."""
+    """Send magic link email using Resend API."""
     link = f"{settings.FRONTEND_URL}/auth/verify?token={token.token}"
 
     html_message = render_to_string('users/magic_link_email.html', {'link': link})
@@ -17,11 +17,11 @@ def send_magic_link_email(email: str, token: MagicLinkToken) -> None:
         f'If you did not request this, you can safely ignore this email.'
     )
 
-    send_mail(
-        subject='Sign in to Mr.Wam',
-        message=plain_message,
-        from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@mrwam.com'),
-        recipient_list=[email],
-        html_message=html_message,
-        fail_silently=True,
-    )
+    resend.api_key = settings.RESEND_API_KEY
+    resend.Emails.send({
+        "from": getattr(settings, 'DEFAULT_FROM_EMAIL', 'onboarding@resend.dev'),
+        "to": [email],
+        "subject": "Sign in to Mr.Wam",
+        "html": html_message,
+        "text": plain_message,
+    })

@@ -36,7 +36,8 @@ RUN pip install --no-cache-dir \
     django-ratelimit==4.1.0 \
     python-dotenv==1.1.1 \
     sqlparse==0.5.3 \
-    packaging==25.0
+    packaging==25.0 \
+    resend==2.9.0
 
 # Copy project source
 COPY . .

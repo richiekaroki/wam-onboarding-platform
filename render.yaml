@@ -57,6 +57,8 @@ services:
         sync: false
       - key: EMAIL_HOST_PASSWORD
         sync: false
+      - key: RESEND_API_KEY
+        sync: false
 
 databases:
   - name: actserv-db
