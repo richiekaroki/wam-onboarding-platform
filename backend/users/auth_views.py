@@ -48,6 +48,7 @@ class RequestMagicLinkView(APIView):
     """
     POST /api/auth/magic-link/
     Body: { "email": "user@example.com" }
+    Sends a magic link to any email. New users are auto-created on verification.
     Always returns 200 to prevent email enumeration.
     """
 
@@ -60,12 +61,6 @@ class RequestMagicLinkView(APIView):
                 {'detail': 'Email is required.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        # Always return 200 — don't reveal whether user exists
-        user = CustomUser.objects.filter(email=email).first()
-        if user is None:
-            # Still return 200 — silent no-op
-            return Response({'detail': 'If an account exists, a sign-in link has been sent.'})
 
         # Invalidate any existing unused tokens for this email
         MagicLinkToken.objects.filter(email=email, used=False).update(used=True)
@@ -82,9 +77,9 @@ class RequestMagicLinkView(APIView):
             import traceback
             logger.error(traceback.format_exc())
             # Don't leak email provider errors
-            return Response({'detail': 'If an account exists, a sign-in link has been sent.'})
+            return Response({'detail': 'A sign-in link has been sent.'})
 
-        return Response({'detail': 'If an account exists, a sign-in link has been sent.'})
+        return Response({'detail': 'A sign-in link has been sent.'})
 
 
 class VerifyMagicLinkView(APIView):
