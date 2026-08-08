@@ -65,3 +65,15 @@ databases:
     plan: free
     databaseName: actserv
     user: actserv
+
+# ── Cron Jobs (create manually in Render Dashboard) ────────────────────────
+#
+# 1. check-escalations
+#    Schedule:  0 9 * * *  (daily 9am UTC)
+#    Command:   python manage.py check_escalations
+#    Env:       DATABASE_URL, SECRET_KEY, DEBUG=False
+#
+# 2. check-backups
+#    Schedule:  0 8 * * *  (daily 8am UTC)
+#    Command:   python manage.py check_backups
+#    Env:       DATABASE_URL, SECRET_KEY, DEBUG=False
