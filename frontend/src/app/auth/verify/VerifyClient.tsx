@@ -1,7 +1,7 @@
 // frontend/src/app/auth/verify/VerifyClient.tsx
 "use client";
 
-import { verifyMagicLink } from "@/lib/api";
+import { verifyMagicLink, updateProfile } from "@/lib/api";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -21,7 +21,18 @@ function VerifyInner() {
     }
 
     verifyMagicLink(token)
-      .then((user) => {
+      .then(async (user) => {
+        // Apply pending name from 2-step sign-in
+        const raw = localStorage.getItem("pending_profile");
+        if (raw) {
+          try {
+            const { first_name, last_name } = JSON.parse(raw);
+            if (first_name || last_name) {
+              await updateProfile({ first_name: first_name || "", last_name: last_name || "" });
+            }
+          } catch { /* ignore */ }
+          localStorage.removeItem("pending_profile");
+        }
         router.push(user.is_staff ? "/admin" : "/forms");
       })
       .catch((err: unknown) => {

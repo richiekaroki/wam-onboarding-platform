@@ -159,11 +159,11 @@ export function isAdmin(): boolean {
 
 // ── Auth API ───────────────────────────────────────────────────────────────
 export async function requestMagicLink(email: string, firstName = "", lastName = ""): Promise<void> {
-  await getApiInstance().post("/auth/magic-link/", {
-    email,
-    first_name: firstName,
-    last_name: lastName,
-  });
+  // Store name in localStorage so we can apply it after verification
+  if (firstName || lastName) {
+    localStorage.setItem("pending_profile", JSON.stringify({ first_name: firstName, last_name: lastName }));
+  }
+  await getApiInstance().post("/auth/magic-link/", { email });
 }
 
 export async function verifyMagicLink(token: string): Promise<AuthUser> {
