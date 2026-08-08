@@ -6,11 +6,9 @@
 #   - Django web service (Docker)
 #   - PostgreSQL database
 #
-# What requires manual setup (set in Render Dashboard → Environment):
-#   - REDIS_URL (Upstash free tier)
-#   - BREVO_API_KEY (from Brevo dashboard)
-#   - DJANGO_ADMIN_PASSWORD
-#   - Cron jobs (check-escalations, check-backups)
+# What requires manual setup (free tier limitation):
+#   - Redis (Upstash free tier — not supported by Render Blueprint)
+#   - Celery worker (Render free tier only allows 1 service)
 #
 # After first deploy, run in Render Shell:
 #   python manage.py migrate --noinput
@@ -33,6 +31,8 @@ services:
         fromDatabase:
           name: actserv-db
           property: connectionString
+      - key: REDIS_URL
+        sync: false
       - key: ALLOWED_HOSTS
         value: actserv-backend.onrender.com
       - key: CORS_ALLOWED_ORIGINS
@@ -45,6 +45,20 @@ services:
         value: karokirichard522@gmail.com
       - key: ADMIN_NOTIFICATION_EMAILS
         value: karokirichard522@gmail.com
+      - key: EMAIL_BACKEND
+        value: django.core.mail.backends.smtp.EmailBackend
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USE_TLS
+        value: "True"
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
 
 databases:
   - name: actserv-db
