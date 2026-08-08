@@ -5,12 +5,12 @@
 # What this automates:
 #   - Django web service (Docker)
 #   - PostgreSQL database
-#   - Cron jobs (escalation reminders, backup checks)
 #
 # What requires manual setup (set in Render Dashboard → Environment):
 #   - REDIS_URL (Upstash free tier)
 #   - BREVO_API_KEY (from Brevo dashboard)
 #   - DJANGO_ADMIN_PASSWORD
+#   - Cron jobs (check-escalations, check-backups)
 #
 # After first deploy, run in Render Shell:
 #   python manage.py migrate --noinput
@@ -51,38 +51,3 @@ databases:
     plan: free
     databaseName: actserv
     user: actserv
-
-cronJobs:
-  - name: check-escalations
-    runtime: docker
-    dockerfilePath: backend/Dockerfile
-    dockerContext: backend
-    plan: free
-    schedule: "0 9 * * *"
-    startCommand: "python manage.py check_escalations"
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: actserv-db
-          property: connectionString
-      - key: SECRET_KEY
-        generateValue: true
-      - key: DEBUG
-        value: "False"
-
-  - name: check-backups
-    runtime: docker
-    dockerfilePath: backend/Dockerfile
-    dockerContext: backend
-    plan: free
-    schedule: "0 8 * * *"
-    startCommand: "python manage.py check_backups"
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: actserv-db
-          property: connectionString
-      - key: SECRET_KEY
-        generateValue: true
-      - key: DEBUG
-        value: "False"
