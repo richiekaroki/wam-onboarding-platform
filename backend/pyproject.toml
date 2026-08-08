@@ -57,6 +57,9 @@ dependencies = [
     "prompt-toolkit==3.0.52",
     "wcwidth==0.2.14",
     "colorama==0.4.6",
+
+    # PDF generation
+    "reportlab==4.4.0",
 ]
 
 [project.optional-dependencies]

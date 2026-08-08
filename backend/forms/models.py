@@ -19,6 +19,12 @@ class Form(models.Model):
     schema = models.JSONField()
     schema_version = models.IntegerField(default=1)
     is_active = models.BooleanField(default=True, db_index=True)
+    assigned_to = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        related_name='assigned_forms',
+        help_text='If set, only these users can see and submit this form.',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

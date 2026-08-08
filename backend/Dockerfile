@@ -37,7 +37,8 @@ RUN pip install --no-cache-dir \
     python-dotenv==1.1.1 \
     sqlparse==0.5.3 \
     packaging==25.0 \
-    requests==2.32.3
+    requests==2.32.3 \
+    reportlab==4.4.0
 
 # Copy project source
 COPY . .

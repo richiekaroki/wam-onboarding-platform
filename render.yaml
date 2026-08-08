@@ -42,9 +42,9 @@ services:
       - key: DJANGO_ADMIN_EMAIL
         value: admin@actserv.local
       - key: DEFAULT_FROM_EMAIL
-        value: no-reply@actserv.local
+        value: karokirichard522@gmail.com
       - key: ADMIN_NOTIFICATION_EMAILS
-        value: admin@actserv.local
+        value: karokirichard522@gmail.com
       - key: EMAIL_BACKEND
         value: django.core.mail.backends.smtp.EmailBackend
       - key: EMAIL_HOST

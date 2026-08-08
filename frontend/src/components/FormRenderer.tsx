@@ -21,6 +21,12 @@ export interface FormFieldDef {
     value: number | string;
     message?: string;
   };
+  // Show/hide conditional logic from schema
+  conditional?: {
+    source_field: string;
+    operator: 'equals' | 'not_equals' | 'contains' | 'not_empty';
+    value: string;
+  };
   help_text?: string;
   placeholder?: string;
   order: number;
@@ -76,6 +82,22 @@ function evaluateConditional(
   }
 }
 
+function evaluateShowHide(
+  conditional: NonNullable<FormFieldDef["conditional"]>,
+  sourceValue: unknown
+): boolean {
+  const { operator, value } = conditional;
+  const sourceStr = String(sourceValue ?? "");
+
+  switch (operator) {
+    case 'equals':      return sourceStr === value;
+    case 'not_equals':  return sourceStr !== value;
+    case 'contains':    return sourceStr.includes(value);
+    case 'not_empty':   return sourceStr.trim() !== '';
+    default:            return true;
+  }
+}
+
 // ── Single field renderer ────────────────────────────────────────────────────
 interface FieldInputProps {
   field: FormFieldDef;
@@ -88,6 +110,13 @@ interface FieldInputProps {
 
 function FieldInput({ field, allFields, register, errors, watchedValues, maxFileBytes }: FieldInputProps) {
   const error = errors[field.key];
+
+  // Show/hide conditional logic
+  const isVisible = field.conditional
+    ? evaluateShowHide(field.conditional, watchedValues[field.conditional.source_field])
+    : true;
+
+  if (!isVisible) return null;
 
   const isConditionallyRequired = field.conditional_required
     ? evaluateConditional(

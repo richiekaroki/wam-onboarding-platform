@@ -16,6 +16,12 @@ export interface FieldDef {
   currency?: string;
   max_file_size?: number;
   accepted_types?: string[];
+  conditional?: {
+    enabled: boolean;
+    source_field: string;
+    operator: 'equals' | 'not_equals' | 'contains' | 'not_empty';
+    value: string;
+  };
 }
 
 export interface SectionDef {
@@ -444,6 +450,78 @@ function FieldCard({ field, onChange, onRemove, onDuplicate, onDragStart, onMove
                 width: "100%",
               }}
             />
+          </div>
+
+          {/* Conditional logic */}
+          <div style={{ borderTop: "1px solid var(--color-ink-100)", paddingTop: "0.75rem" }}>
+            <label
+              style={{
+                display: "flex", alignItems: "center", gap: "0.5rem",
+                fontSize: "0.8rem", color: "var(--color-ink-600)", cursor: "pointer",
+                marginBottom: "0.5rem",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={field.conditional?.enabled ?? false}
+                onChange={(e) => update({
+                  conditional: {
+                    enabled: e.target.checked,
+                    source_field: field.conditional?.source_field || '',
+                    operator: field.conditional?.operator || 'equals',
+                    value: field.conditional?.value || '',
+                  },
+                })}
+                style={{ accentColor: "var(--color-ink-900)" }}
+              />
+              Show this field conditionally
+            </label>
+
+            {field.conditional?.enabled && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginLeft: "1.5rem" }}>
+                <p className="text-xs" style={{ color: "var(--color-ink-400)" }}>
+                  This field will only show when the condition is met.
+                </p>
+                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                  <select
+                    value={field.conditional?.source_field || ''}
+                    onChange={(e) => update({
+                      conditional: { ...field.conditional!, source_field: e.target.value },
+                    })}
+                    className="input"
+                    style={{ flex: 1, minWidth: "120px", fontSize: "0.75rem", padding: "0.4rem 0.5rem" }}
+                  >
+                    <option value="">Select field...</option>
+                    {/* Options will be populated by the parent component */}
+                  </select>
+                  <select
+                    value={field.conditional?.operator || 'equals'}
+                    onChange={(e) => update({
+                      conditional: { ...field.conditional!, operator: e.target.value as any },
+                    })}
+                    className="input"
+                    style={{ width: "100px", fontSize: "0.75rem", padding: "0.4rem 0.5rem" }}
+                  >
+                    <option value="equals">equals</option>
+                    <option value="not_equals">not equals</option>
+                    <option value="contains">contains</option>
+                    <option value="not_empty">is not empty</option>
+                  </select>
+                  {field.conditional?.operator !== 'not_empty' && (
+                    <input
+                      type="text"
+                      value={field.conditional?.value || ''}
+                      onChange={(e) => update({
+                        conditional: { ...field.conditional!, value: e.target.value },
+                      })}
+                      placeholder="Value"
+                      className="input"
+                      style={{ flex: 1, minWidth: "100px", fontSize: "0.75rem", padding: "0.4rem 0.5rem" }}
+                    />
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

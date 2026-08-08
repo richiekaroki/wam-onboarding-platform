@@ -317,6 +317,26 @@ export async function updateSubmissionStatus(id: string, status: string) {
   return response.data;
 }
 
+export async function exportSubmissionPdf(id: string): Promise<void> {
+  const response = await getApiInstance().get(`/submissions/${id}/export-pdf/`, {
+    responseType: 'blob',
+  });
+  const blob = new Blob([response.data], { type: 'application/pdf' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `submission-${id.substring(0, 8)}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+  a.remove();
+}
+
+export async function getFormStats(): Promise<any> {
+  const response = await getApiInstance().get("/forms/stats/");
+  return response.data;
+}
+
 // ── Notifications ──────────────────────────────────────────────────────────
 export async function getNotifications() {
   const response = await getApiInstance().get("/notifications/");

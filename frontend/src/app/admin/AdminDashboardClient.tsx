@@ -5,6 +5,7 @@ import {
   getForms,
   getSubmissions,
   getNotifications,
+  getFormStats,
   updateSubmissionStatus,
   loadCurrentUser,
   isAdmin,
@@ -45,6 +46,7 @@ export default function AdminDashboard() {
   const [toast,       setToast]       = useState<{ message: string; type: "success" | "error"; onUndo?: () => void } | null>(null);
   const [subPage,     setSubPage]     = useState(0);
   const [totalSubs,   setTotalSubs]   = useState(0);
+  const [stats,       setStats]       = useState<any>(null);
   const PAGE_SIZE = 20; // Must match backend PAGE_SIZE
   const undoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -60,15 +62,17 @@ export default function AdminDashboard() {
 
   const fetchAll = async () => {
     try {
-const [formsRes, subsRes, notifsData] = await Promise.all([
+const [formsRes, subsRes, notifsData, statsRes] = await Promise.all([
       getForms(1),
       getSubmissions(1),
       getNotifications(),
+      getFormStats().catch(() => null),
     ]);
     setForms(formsRes as unknown as Form[]);
     setSubmissions(subsRes as unknown as Submission[]);
     setTotalSubs(subsRes.length);
       setUnread(notifsData.filter((n: { is_read: boolean }) => !n.is_read).length);
+      if (statsRes) setStats(statsRes);
     } catch (err: unknown) {
       setFetchError(true);
       const msg = err instanceof Error ? err.message : "Check your connection and try again.";
@@ -133,9 +137,12 @@ const [formsRes, subsRes, notifsData] = await Promise.all([
   const pending = submissions.filter((s) => s.status === "submitted");
 
   const statCards = [
-    { label: "Total Forms",    value: forms.length,          href: "#forms"              },
-    { label: "Submissions",    value: totalSubs,              href: "#submissions"        },
-    { label: "Pending Review", value: pending.length,         href: "#needs-attention"    },
+    { label: "Total Forms",    value: stats?.total_forms ?? forms.length,          href: "#forms"              },
+    { label: "Submissions",    value: stats?.total_submissions ?? totalSubs,       href: "#submissions"        },
+    { label: "Pending Review", value: stats?.status_counts?.submitted ?? pending.length, href: "#needs-attention" },
+    { label: "Approval Rate",  value: stats?.approval_rate != null ? `${stats.approval_rate}%` : "—", href: "#submissions" },
+    { label: "This Week",      value: stats?.recent_submissions_7d ?? "—",         href: "#submissions"        },
+    { label: "Overdue",        value: stats?.overdue_submissions ?? "—",           href: "#needs-attention"    },
   ];
 
   if (loading) {

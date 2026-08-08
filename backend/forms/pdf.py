@@ -1,0 +1,119 @@
+# backend/forms/pdf.py
+"""PDF generation for submission exports using ReportLab."""
+import io
+import logging
+
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import mm
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+
+logger = logging.getLogger(__name__)
+
+
+def generate_submission_pdf(submission) -> bytes:
+    """Generate a PDF document for a submission. Returns raw bytes."""
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=20*mm, bottomMargin=20*mm)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    # Title style
+    title_style = ParagraphStyle('SubmissionTitle', parent=styles['Heading1'], fontSize=18, spaceAfter=6)
+    subtitle_style = ParagraphStyle('SubmissionSubtitle', parent=styles['Normal'], fontSize=10, textColor=colors.grey, spaceAfter=20)
+
+    # Header
+    elements.append(Paragraph(f"Submission: {submission.form.name}", title_style))
+    elements.append(Paragraph(f"ID: {submission.id}", subtitle_style))
+
+    # Metadata table
+    meta_data = [
+        ['Status', submission.get_status_display()],
+        ['Submitted', submission.created_at.strftime('%Y-%m-%d %H:%M UTC')],
+        ['Last Updated', submission.updated_at.strftime('%Y-%m-%d %H:%M UTC')],
+    ]
+    if submission.submitted_by:
+        meta_data.append(['Submitted By', str(submission.submitted_by)])
+    if submission.client_identifier:
+        meta_data.append(['Client ID', submission.client_identifier])
+    if submission.due_date:
+        meta_data.append(['Due Date', submission.due_date.strftime('%Y-%m-%d')])
+
+    meta_table = Table(meta_data, colWidths=[120, 350])
+    meta_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.Color(0.95, 0.95, 0.95)),
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.Color(0.3, 0.3, 0.3)),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.Color(0.85, 0.85, 0.85)),
+    ]))
+    elements.append(meta_table)
+    elements.append(Spacer(1, 20))
+
+    # Responses section
+    section_style = ParagraphStyle('SectionHeader', parent=styles['Heading2'], fontSize=14, spaceAfter=10)
+    elements.append(Paragraph('Responses', section_style))
+
+    responses = submission.responses or {}
+    if responses:
+        response_data = [['Field', 'Value']]
+        for key, value in responses.items():
+            # Truncate long values
+            display_value = str(value)
+            if len(display_value) > 200:
+                display_value = display_value[:200] + '...'
+            response_data.append([key, display_value])
+
+        response_table = Table(response_data, colWidths=[150, 320])
+        response_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.Color(0.9, 0.9, 0.9)),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.Color(0.85, 0.85, 0.85)),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.Color(0.98, 0.98, 0.98)]),
+        ]))
+        elements.append(response_table)
+    else:
+        elements.append(Paragraph('No responses recorded.', styles['Normal']))
+
+    elements.append(Spacer(1, 20))
+
+    # Files section
+    files = submission.files.all()
+    if files:
+        elements.append(Paragraph('Uploaded Files', section_style))
+        file_data = [['Field', 'Filename', 'Size', 'Uploaded']]
+        for f in files:
+            size_kb = f.file_size / 1024 if f.file_size else 0
+            file_data.append([
+                f.field_key,
+                f.original_filename or 'Unknown',
+                f'{size_kb:.1f} KB',
+                f.uploaded_at.strftime('%Y-%m-%d %H:%M'),
+            ])
+        file_table = Table(file_data, colWidths=[100, 180, 80, 110])
+        file_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.Color(0.9, 0.9, 0.9)),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.Color(0.85, 0.85, 0.85)),
+        ]))
+        elements.append(file_table)
+
+    # Footer
+    elements.append(Spacer(1, 30))
+    footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor=colors.grey)
+    elements.append(Paragraph('Generated by Mr.Wam Onboarding Platform', footer_style))
+
+    doc.build(elements)
+    return buffer.getvalue()

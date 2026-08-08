@@ -110,26 +110,65 @@ def format_responses(responses: dict | None) -> str:
 @shared_task(bind=True, max_retries=3)
 def send_admin_email(self, subject: str, message: str, recipient_list: list[str]):
     """Send email to admins via Celery. Retries on failure with exponential backoff."""
+    from .email import send_email
+    results = []
+    for email in recipient_list:
+        results.append(send_email(to=email, subject=subject, text=message))
+    return "email_sent" if any(results) else "email_failed"
+
+
+def notify_client_status_change_synchronous(submission_id: str) -> str:
+    """Synchronous: create in-app notification + email client when status changes."""
+    from django.contrib.auth import get_user_model
+    from forms.models import Submission
+    from .models import Notification
+    from .email import send_client_status_email
+
+    User = get_user_model()
+
     try:
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@actserv.local'),
-            recipient_list=recipient_list,
-            fail_silently=False,
-        )
-        logger.info("Admin notification email sent at %s", now())
-        return "email_sent"
-    except Exception as exc:
-        logger.exception("Failed to send admin email")
-        raise self.retry(exc=exc, countdown=60)
+        submission = Submission.objects.select_related('form', 'submitted_by').get(id=submission_id)
+    except Submission.DoesNotExist:
+        logger.warning("Submission %s not found — skipping notification", submission_id)
+        return f"Submission {submission_id} not found"
+
+    if not submission.submitted_by or not submission.submitted_by.email:
+        logger.info("No submitter email for submission %s — skipping email", submission_id)
+        return "no_recipient"
+
+    status_labels = {
+        'submitted': 'Submitted',
+        'reviewed': 'Under Review',
+        'approved': 'Approved',
+        'rejected': 'Rejected',
+    }
+    label = status_labels.get(submission.status, submission.status)
+
+    # In-app notification
+    Notification.objects.create(
+        user=submission.submitted_by,
+        type='submission',
+        title=f'Submission {label}',
+        message=f'Your submission for "{submission.form.name}" is now {label}.',
+        related_submission=submission,
+    )
+
+    # Email notification
+    send_client_status_email(
+        to=submission.submitted_by.email,
+        form_name=submission.form.name,
+        submission_id=str(submission.id),
+        new_status=submission.status,
+    )
+
+    logger.info("Client notification sent for submission %s (status: %s)", submission_id, submission.status)
+    return f"Client notified for submission {submission_id}"
 
 
 # ── Escalating SMS / notification alerts ────────────────────────────────────
 
-@shared_task
-def check_escalating_alerts() -> str:
-    """Daily task: scan submissions with due_dates and send escalating alerts.
+def check_escalating_alerts_synchronous() -> str:
+    """Synchronous version: scan submissions with due_dates and send escalating alerts.
 
     Escalation timeline (days past due):
         5  → Friendly reminder
@@ -140,6 +179,7 @@ def check_escalating_alerts() -> str:
     from django.contrib.auth import get_user_model
     from forms.models import Submission
     from .models import Notification
+    from .email import send_email
 
     User = get_user_model()
     today = localtime().date()
@@ -211,21 +251,32 @@ def check_escalating_alerts() -> str:
 
         # ── Send email to submitter ───────────────────────────────────────
         if sub.submitted_by and sub.submitted_by.email:
-            send_escalation_email.delay(
-                sub.submitted_by.email,
-                sub.form.name,
-                str(sub.id),
-                chosen_title,
-                chosen_body,
-                str(sub.due_date),
-                days_overdue,
+            subject = f"[Mr.Wam] {chosen_title} — {sub.form.name}"
+            text = (
+                f"Dear Member,\n\n"
+                f"{chosen_body}\n\n"
+                f"Form:           {sub.form.name}\n"
+                f"Submission ID:  {sub.id}\n"
+                f"Due date:       {sub.due_date}\n"
+                f"Days overdue:   {days_overdue}\n\n"
+                f"Please log in to the portal to complete your submission.\n\n"
+                f"Thank you,\nMr.Wam Team"
             )
+            send_email(to=sub.submitted_by.email, subject=subject, text=text)
 
         processed += 1
         logger.info(
             "Escalation level %d sent for submission %s (%d days overdue)",
             chosen_level, sub.id, days_overdue,
         )
+
+    return f"Processed {processed} escalation(s)"
+
+
+@shared_task
+def check_escalating_alerts() -> str:
+    """Celery wrapper for check_escalating_alerts_synchronous."""
+    return check_escalating_alerts_synchronous()
 
     return f"Processed {processed} escalation(s)"
 

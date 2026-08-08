@@ -1,11 +1,14 @@
 # ===== backend/forms/serializers.py =====
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
 from django.core.validators import EmailValidator
 from django.core.exceptions import ValidationError as DjangoValidationError
 import datetime
 import decimal
 
 from .models import Field, FileUpload, Form, Submission
+
+User = get_user_model()
 
 
 class FieldSerializer(serializers.ModelSerializer):
@@ -18,11 +21,20 @@ class FieldSerializer(serializers.ModelSerializer):
 class FormSerializer(serializers.ModelSerializer):
     fields = FieldSerializer(many=True, read_only=True)  # pyrefly: ignore
     submission_count = serializers.IntegerField(read_only=True, default=0)
+    assigned_to = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=get_user_model().objects.all(), required=False
+    )
 
     class Meta:  # pyrefly: ignore
         model = Form
         fields = '__all__'
         read_only_fields = ('id', 'created_at', 'updated_at', 'schema_version')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Lazy import to avoid circular import at module level
+        from users.models import CustomUser
+        self.fields['assigned_to'].child.queryset = CustomUser.objects.all()
 
 
 class FileUploadSerializer(serializers.ModelSerializer):
@@ -41,6 +53,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'id', 'created_at', 'updated_at',
             'submitted_by', 'schema_version', 'status',
+            'escalation_level', 'penalty_applied_at', 'last_reminder_sent_at',
         )
 
     def validate(self, attrs):

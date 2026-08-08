@@ -50,6 +50,11 @@ export default function CreateFormPage() {
             currency: f.field_type === "currency" ? f.currency : undefined,
             max_file_size: f.field_type === "file" ? f.max_file_size : undefined,
             accepted_types: f.field_type === "file" ? f.accepted_types : undefined,
+            conditional: f.conditional?.enabled ? {
+              source_field: f.conditional.source_field,
+              operator: f.conditional.operator,
+              value: f.conditional.value,
+            } : undefined,
           })),
         })),
         // Flat fields array for backward compatibility
@@ -65,6 +70,11 @@ export default function CreateFormPage() {
             currency: f.field_type === "currency" ? f.currency : undefined,
             max_file_size: f.field_type === "file" ? f.max_file_size : undefined,
             accepted_types: f.field_type === "file" ? f.accepted_types : undefined,
+            conditional: f.conditional?.enabled ? {
+              source_field: f.conditional.source_field,
+              operator: f.conditional.operator,
+              value: f.conditional.value,
+            } : undefined,
           }))
         ),
       };
