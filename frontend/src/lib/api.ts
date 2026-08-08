@@ -190,7 +190,7 @@ export async function loadCurrentUser(): Promise<AuthUser | null> {
 export async function updateProfile(data: { first_name: string; last_name: string }): Promise<AuthUser> {
   const response = await getApiInstance().patch("/auth/me/", data);
   _currentUser = response.data;
-  return _currentUser;
+  return response.data;
 }
 
 export async function logout(): Promise<void> {
