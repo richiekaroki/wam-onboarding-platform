@@ -12,3 +12,9 @@ class UserSerializer(serializers.ModelSerializer):
             'role', 'phone', 'department', 'employee_id', 'is_staff',
         ]
         read_only_fields = fields
+
+
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:  # pyrefly: ignore[bad-override]
+        model = CustomUser
+        fields = ['first_name', 'last_name']

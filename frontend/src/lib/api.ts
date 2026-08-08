@@ -158,8 +158,12 @@ export function isAdmin(): boolean {
 }
 
 // ── Auth API ───────────────────────────────────────────────────────────────
-export async function requestMagicLink(email: string): Promise<void> {
-  await getApiInstance().post("/auth/magic-link/", { email });
+export async function requestMagicLink(email: string, firstName = "", lastName = ""): Promise<void> {
+  await getApiInstance().post("/auth/magic-link/", {
+    email,
+    first_name: firstName,
+    last_name: lastName,
+  });
 }
 
 export async function verifyMagicLink(token: string): Promise<AuthUser> {
@@ -181,6 +185,12 @@ export async function loadCurrentUser(): Promise<AuthUser | null> {
   } catch {
     return null;
   }
+}
+
+export async function updateProfile(data: { first_name: string; last_name: string }): Promise<AuthUser> {
+  const response = await getApiInstance().patch("/auth/me/", data);
+  _currentUser = response.data;
+  return _currentUser;
 }
 
 export async function logout(): Promise<void> {

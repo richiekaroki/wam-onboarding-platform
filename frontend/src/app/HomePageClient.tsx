@@ -1,13 +1,21 @@
 // frontend/src/app/page.tsx
 "use client";
 
-import { isAdmin, isAuthenticated, logout } from "@/lib/api";
+import { getCurrentUser, isAdmin, isAuthenticated, loadCurrentUser, logout } from "@/lib/api";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+
+function getInitials(first: string, last: string, email: string): string {
+  if (first || last) return ((first?.[0] || "") + (last?.[0] || "")).toUpperCase();
+  return email?.[0]?.toUpperCase() || "?";
+}
 
 export default function HomePage() {
   const [authed, setAuthed] = useState(false);
   const [admin, setAdmin]   = useState(false);
+  const [userFirst, setUserFirst] = useState("");
+  const [userLast, setUserLast] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -15,6 +23,13 @@ export default function HomePage() {
   useEffect(() => {
     setAuthed(isAuthenticated());
     setAdmin(isAdmin());
+    loadCurrentUser().then((user) => {
+      if (user) {
+        setUserFirst(user.first_name || "");
+        setUserLast(user.last_name || "");
+        setUserEmail(user.email);
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -63,6 +78,16 @@ export default function HomePage() {
                   style={{ fontSize:"0.72rem", color:"var(--color-ink-inverse-dim)",
                     letterSpacing:"0.1em", textTransform:"uppercase", textDecoration:"none", transition:"color 0.2s" }}>
                   {admin ? "Dashboard" : "My Forms"}
+                </Link>
+                <Link href="/profile" style={{ display:"flex", alignItems:"center", gap:"0.5rem", textDecoration:"none" }}>
+                  <div style={{
+                    width:"28px", height:"28px", borderRadius:"50%",
+                    background:"var(--color-gold-inverse)", color:"var(--color-ink-900)",
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    fontSize:"0.65rem", fontWeight:600, fontFamily:"var(--font-display)",
+                  }}>
+                    {getInitials(userFirst, userLast, userEmail)}
+                  </div>
                 </Link>
                 <button onClick={logout}
                   style={{ fontSize:"0.72rem", color:"var(--color-ink-inverse-dim)",
@@ -117,17 +142,36 @@ export default function HomePage() {
             padding:"0.75rem 2.5rem 1.5rem" }}>
             {authed ? (
               <div style={{ display:"flex", flexDirection:"column", gap:"0.25rem" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:"0.75rem", padding:"0.75rem 1rem", marginBottom:"0.25rem" }}>
+                  <div style={{
+                    width:"32px", height:"32px", borderRadius:"50%",
+                    background:"var(--color-gold-inverse)", color:"var(--color-ink-900)",
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    fontSize:"0.7rem", fontWeight:600, fontFamily:"var(--font-display)",
+                  }}>
+                    {getInitials(userFirst, userLast, userEmail)}
+                  </div>
+                  <span style={{ fontSize:"0.8rem", color:"var(--color-ink-inverse)" }}>
+                    {[userFirst, userLast].filter(Boolean).join(" ") || userEmail}
+                  </span>
+                </div>
                 <Link href={admin ? "/admin" : "/forms"} className="nav-link"
                   style={{ fontSize:"0.8rem", color:"var(--color-ink-inverse-dim)",
                     padding:"0.75rem 1rem", letterSpacing:"0.1em", textTransform:"uppercase",
                     textDecoration:"none", borderRadius:"4px", transition:"background 0.15s" }}>
                   {admin ? "Dashboard" : "My Forms"}
                 </Link>
+                <Link href="/profile" className="nav-link"
+                  style={{ fontSize:"0.8rem", color:"var(--color-ink-inverse-dim)",
+                    padding:"0.75rem 1rem", letterSpacing:"0.1em", textTransform:"uppercase",
+                    textDecoration:"none", borderRadius:"4px", transition:"background 0.15s" }}>
+                  Profile
+                </Link>
                 <button onClick={logout}
                   style={{ fontSize:"0.8rem", color:"var(--color-ink-inverse-dim)",
                     padding:"0.75rem 1rem", letterSpacing:"0.1em", textTransform:"uppercase",
                     textDecoration:"none", borderRadius:"4px", transition:"background 0.15s",
-                    background:"none", border:"none", cursor:"pointer", width:"100%" }}>
+                    background:"none", border:"none", cursor:"pointer", width:"100%", textAlign:"left" }}>
                   Sign out
                 </button>
               </div>

@@ -47,7 +47,7 @@ def _issue_tokens(user: CustomUser) -> dict:
 class RequestMagicLinkView(APIView):
     """
     POST /api/auth/magic-link/
-    Body: { "email": "user@example.com" }
+    Body: { "email": "user@example.com", "first_name": "...", "last_name": "..." }
     Sends a magic link to any email. New users are auto-created on verification.
     Always returns 200 to prevent email enumeration.
     """
@@ -56,6 +56,8 @@ class RequestMagicLinkView(APIView):
 
     def post(self, request: Request) -> Response:
         email = request.data.get('email', '').lower().strip()
+        first_name = request.data.get('first_name', '')
+        last_name = request.data.get('last_name', '')
         if not email:
             return Response(
                 {'detail': 'Email is required.'},
@@ -65,8 +67,8 @@ class RequestMagicLinkView(APIView):
         # Invalidate any existing unused tokens for this email
         MagicLinkToken.objects.filter(email=email, used=False).update(used=True)
 
-        # Create new token
-        token = MagicLinkToken.create_for_email(email)
+        # Create new token (includes name for new user creation)
+        token = MagicLinkToken.create_for_email(email, first_name=first_name, last_name=last_name)
 
         # Send email
         try:
@@ -116,20 +118,25 @@ class VerifyMagicLinkView(APIView):
         # Mark token as used
         token.mark_used()
 
-        # Get or create user
+        # Get or create user — use name from token if available
         user, created = CustomUser.objects.get_or_create(
             email=token.email,
             defaults={
                 'username': token.email,
-                'first_name': '',
-                'last_name': '',
+                'first_name': token.first_name,
+                'last_name': token.last_name,
                 'role': 'client',
             },
         )
         if created:
             user.set_unusable_password()
             user.save()
-            logger.info('New user created via magic link: %s', user.email)
+            logger.info('New user created via magic link: %s %s <%s>', token.first_name, token.last_name, user.email)
+        elif token.first_name and not user.first_name:
+            # Update name if token has one and user doesn't
+            user.first_name = token.first_name
+            user.last_name = token.last_name
+            user.save(update_fields=['first_name', 'last_name'])
 
         # Issue JWT tokens
         data = _issue_tokens(user)

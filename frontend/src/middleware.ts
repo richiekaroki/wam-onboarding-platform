@@ -1,7 +1,7 @@
 // frontend/src/middleware.ts
 import { NextRequest, NextResponse } from "next/server";
 
-const PROTECTED_PATHS = ["/admin", "/forms"];
+const PROTECTED_PATHS = ["/admin", "/forms", "/profile"];
 const AUTH_PATHS = ["/login", "/auth/verify"];
 
 function hasAccessToken(request: NextRequest): boolean {
@@ -26,5 +26,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/forms/:path*", "/login", "/auth/verify"],
+  matcher: ["/admin/:path*", "/forms/:path*", "/profile", "/login", "/auth/verify"],
 };

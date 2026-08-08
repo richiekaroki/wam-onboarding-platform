@@ -1,4 +1,4 @@
-// frontend/src/app/login/page.tsx
+// frontend/src/app/login/LoginClient.tsx
 "use client";
 
 import { requestMagicLink } from "@/lib/api";
@@ -6,25 +6,34 @@ import Link from "next/link";
 import { useState } from "react";
 
 export default function LoginPage() {
+  const [step, setStep] = useState<"name" | "email" | "sent">("name");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  function handleNameNext(e: React.FormEvent) {
+    e.preventDefault();
+    setStep("email");
+  }
+
+  async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      await requestMagicLink(email);
-      setSent(true);
+      await requestMagicLink(email, firstName, lastName);
+      setStep("sent");
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  const displayName = [firstName, lastName].filter(Boolean).join(" ") || email;
 
   return (
     <div className="min-h-screen flex" style={{ background: "var(--color-surface)" }}>
@@ -70,43 +79,90 @@ export default function LoginPage() {
       <main className="flex-1 flex items-center justify-center p-8" id="main-content">
         <div className="w-full max-w-md animate-fade-up">
 
-          {sent ? (
-            /* ── Check your email ── */
-            <div className="text-center">
-              <div
-                style={{
-                  width: "64px", height: "64px", borderRadius: "50%",
-                  background: "var(--color-status-approved-bg)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  margin: "0 auto 1.5rem",
-                }}
-              >
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-status-approved)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="4" width="20" height="16" rx="2" />
-                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                </svg>
-              </div>
-              <h2 style={{ fontFamily: "var(--font-display)", fontSize: "2rem", color: "var(--color-ink-900)", marginBottom: "0.75rem" }}>
-                Check your email
-              </h2>
-              <p className="text-sm" style={{ color: "var(--color-ink-600)", marginBottom: "2rem" }}>
-                We sent a sign-in link to<br />
-                <strong style={{ color: "var(--color-ink-900)" }}>{email}</strong>
-              </p>
-              <p className="text-xs" style={{ color: "var(--color-ink-400)", marginBottom: "2rem" }}>
-                The link expires in 10 minutes. Check your spam folder if you don&apos;t see it.
-              </p>
-              <button
-                onClick={() => { setSent(false); setEmail(""); }}
-                style={{ margin: "0 auto", display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.5rem", border: "1px solid #C9CDD4", color: "#1F2937", fontSize: "0.875rem", fontWeight: 500, background: "transparent", cursor: "pointer", borderRadius: "4px" }}
-              >
-                Use a different email
-              </button>
-            </div>
-          ) : (
-            /* ── Email input form ── */
+          {/* ── Step 1: Name ── */}
+          {step === "name" && (
             <>
               <div className="mb-10">
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1.5rem" }}>
+                  <span style={{
+                    width: "28px", height: "28px", borderRadius: "50%",
+                    background: "var(--color-ink-900)", color: "var(--color-gold)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: "0.7rem", fontWeight: 600, fontFamily: "var(--font-display)",
+                  }}>1</span>
+                  <span style={{ fontSize: "0.7rem", color: "var(--color-ink-400)", letterSpacing: "0.1em", textTransform: "uppercase" as const }}>
+                    Your Name
+                  </span>
+                </div>
+                <h2 style={{ fontFamily: "var(--font-display)", fontSize: "2.25rem", color: "var(--color-ink-900)" }}>
+                  Welcome
+                </h2>
+                <p className="mt-2 text-sm" style={{ color: "var(--color-ink-600)" }}>
+                  Let&apos;s start with your name so we can personalize your experience
+                </p>
+              </div>
+
+              <form onSubmit={handleNameNext} className="space-y-5">
+                <div>
+                  <label htmlFor="first_name" className="label">First Name <span style={{ color: "var(--color-gold)" }}>*</span></label>
+                  <input
+                    id="first_name"
+                    type="text"
+                    autoComplete="given-name"
+                    autoFocus
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="e.g. Richard"
+                    required
+                    className="input"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="last_name" className="label">Last Name <span style={{ color: "var(--color-gold)" }}>*</span></label>
+                  <input
+                    id="last_name"
+                    type="text"
+                    autoComplete="family-name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="e.g. Kabue"
+                    required
+                    className="input"
+                  />
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1rem" }}>
+                  <Link href="/"
+                    style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.5rem", border: "1px solid #C9CDD4", color: "#1F2937", fontSize: "0.875rem", fontWeight: 500, background: "transparent", cursor: "pointer", borderRadius: "4px", textDecoration: "none" }}>
+                    ◄ Cancel
+                  </Link>
+                  <button
+                    type="submit"
+                    disabled={!firstName || !lastName}
+                    style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.5rem", border: "1px solid #C9A84C", color: "#C9A84C", fontSize: "0.875rem", fontWeight: 500, background: "transparent", cursor: !firstName || !lastName ? "not-allowed" : "pointer", borderRadius: "4px", opacity: !firstName || !lastName ? 0.4 : 1, letterSpacing: "0.05em", textTransform: "uppercase" as const }}>
+                    Next ▸
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
+
+          {/* ── Step 2: Email ── */}
+          {step === "email" && (
+            <>
+              <div className="mb-10">
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1.5rem" }}>
+                  <span style={{
+                    width: "28px", height: "28px", borderRadius: "50%",
+                    background: "var(--color-status-approved-bg)", color: "var(--color-status-approved)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: "0.75rem", fontWeight: 600,
+                  }}>✓</span>
+                  <span style={{ fontSize: "0.7rem", color: "var(--color-ink-400)", letterSpacing: "0.1em", textTransform: "uppercase" as const }}>
+                    {displayName}
+                  </span>
+                </div>
                 <h2 style={{ fontFamily: "var(--font-display)", fontSize: "2.25rem", color: "var(--color-ink-900)" }}>
                   Sign in
                 </h2>
@@ -115,7 +171,7 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleEmailSubmit} className="space-y-5">
                 <div>
                   <label htmlFor="email" className="label">Email Address <span style={{ color: "var(--color-gold)" }}>*</span></label>
                   <input
@@ -141,15 +197,16 @@ export default function LoginPage() {
                 )}
 
                 <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1rem" }}>
-                  <Link href="/"
-                    style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.5rem", border: "1px solid #C9CDD4", color: "#1F2937", fontSize: "0.875rem", fontWeight: 500, background: "transparent", cursor: "pointer", borderRadius: "4px", textDecoration: "none" }}>
-                    ◄ Cancel
-                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setStep("name")}
+                    style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.5rem", border: "1px solid #C9CDD4", color: "#1F2937", fontSize: "0.875rem", fontWeight: 500, background: "transparent", cursor: "pointer", borderRadius: "4px" }}>
+                    ◄ Back
+                  </button>
                   <button
                     type="submit"
                     disabled={loading || !email}
-                    style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.5rem", border: "1px solid #C9A84C", color: "#C9A84C", fontSize: "0.875rem", fontWeight: 500, background: "transparent", cursor: loading || !email ? "not-allowed" : "pointer", borderRadius: "4px", opacity: loading || !email ? 0.4 : 1, letterSpacing: "0.05em", textTransform: "uppercase" }}
-                  >
+                    style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.5rem", border: "1px solid #C9A84C", color: "#C9A84C", fontSize: "0.875rem", fontWeight: 500, background: "transparent", cursor: loading || !email ? "not-allowed" : "pointer", borderRadius: "4px", opacity: loading || !email ? 0.4 : 1, letterSpacing: "0.05em", textTransform: "uppercase" as const }}>
                     {loading ? (
                       <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                         <span
@@ -171,6 +228,41 @@ export default function LoginPage() {
                 </div>
               </form>
             </>
+          )}
+
+          {/* ── Check your email ── */}
+          {step === "sent" && (
+            <div className="text-center">
+              <div
+                style={{
+                  width: "64px", height: "64px", borderRadius: "50%",
+                  background: "var(--color-status-approved-bg)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  margin: "0 auto 1.5rem",
+                }}
+              >
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-status-approved)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                </svg>
+              </div>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: "2rem", color: "var(--color-ink-900)", marginBottom: "0.75rem" }}>
+                Check your email
+              </h2>
+              <p className="text-sm" style={{ color: "var(--color-ink-600)", marginBottom: "2rem" }}>
+                We sent a sign-in link to<br />
+                <strong style={{ color: "var(--color-ink-900)" }}>{email}</strong>
+              </p>
+              <p className="text-xs" style={{ color: "var(--color-ink-400)", marginBottom: "2rem" }}>
+                The link expires in 10 minutes. Check your spam folder if you don&apos;t see it.
+              </p>
+              <button
+                onClick={() => { setStep("email"); setEmail(""); }}
+                style={{ margin: "0 auto", display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.5rem", border: "1px solid #C9CDD4", color: "#1F2937", fontSize: "0.875rem", fontWeight: 500, background: "transparent", cursor: "pointer", borderRadius: "4px" }}
+              >
+                Use a different email
+              </button>
+            </div>
           )}
         </div>
       </main>

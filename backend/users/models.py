@@ -29,6 +29,8 @@ class MagicLinkToken(models.Model):
     """One-time magic link token for passwordless authentication."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(db_index=True)
+    first_name = models.CharField(max_length=150, blank=True, default='')
+    last_name = models.CharField(max_length=150, blank=True, default='')
     token = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
@@ -42,9 +44,11 @@ class MagicLinkToken(models.Model):
         self.save(update_fields=['used'])
 
     @classmethod
-    def create_for_email(cls, email: str, ttl_minutes: int = 10) -> "MagicLinkToken":
+    def create_for_email(cls, email: str, first_name: str = '', last_name: str = '', ttl_minutes: int = 10) -> "MagicLinkToken":
         return cls.objects.create(
             email=email.lower().strip(),
+            first_name=first_name.strip(),
+            last_name=last_name.strip(),
             expires_at=timezone.now() + timezone.timedelta(minutes=ttl_minutes),
         )
 

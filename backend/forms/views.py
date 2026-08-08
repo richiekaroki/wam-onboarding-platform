@@ -41,7 +41,7 @@ class FormViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminUserOrReadOnly]
 
     def get_queryset(self):
-        qs = Form.objects.prefetch_related('fields').annotate(submission_count=Count('submissions'))
+        qs = Form.objects.prefetch_related('fields').annotate(submission_count=Count('submissions')).order_by('-created_at')
         # request.user is typed as AbstractBaseUser by django-stubs, which lacks
         # is_staff. We import CustomUser for the cast so Pyrefly resolves it correctly.
         from users.models import CustomUser

@@ -14,16 +14,29 @@ interface Form {
   fields: { id: string }[];
 }
 
+function getInitials(first: string, last: string, email: string): string {
+  if (first || last) return ((first?.[0] || "") + (last?.[0] || "")).toUpperCase();
+  return email?.[0]?.toUpperCase() || "?";
+}
+
 export default function FormsList() {
   const [forms, setForms]     = useState<Form[]>([]);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState("");
+  const [userFirst, setUserFirst] = useState("");
+  const [userLast, setUserLast] = useState("");
   const [networkError, setNetworkError] = useState(false);
   const [authed, setAuthed] = useState(false);
 
   useEffect(() => {
     loadCurrentUser().then((user) => {
-      if (user) setUserName(user.first_name || user.email);
+      if (user) {
+        setUserName(user.first_name || user.email);
+        setUserEmail(user.email);
+        setUserFirst(user.first_name || "");
+        setUserLast(user.last_name || "");
+      }
       setAuthed(isAuthenticated());
     });
 
@@ -36,41 +49,65 @@ export default function FormsList() {
       .finally(() => setLoading(false));
   }, []);
 
+  const initials = getInitials(userFirst, userLast, userEmail);
+  const displayName = (userFirst || userLast)
+    ? [userFirst, userLast].filter(Boolean).join(" ")
+    : userEmail;
+
   return (
-    <div className="min-h-screen py-12 px-4" style={{ background: "var(--color-surface)" }}>
+    <div className="min-h-screen" style={{ background: "var(--color-surface)" }}>
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-(--color-surface) focus:px-4 focus:py-2 focus:shadow-lg focus:outline-none" style={{ color: "var(--color-ink-900)" }}>
         Skip to main content
       </a>
 
-      <main id="main-content" style={{ maxWidth: "900px", margin: "0 auto" }}>
+      {/* ── Nav bar ── */}
+      <nav style={{ borderBottom: "1px solid var(--color-ink-100)", background: "var(--color-surface-raised)" }}>
+        <div style={{ maxWidth: "900px", margin: "0 auto", padding: "0 1rem", display: "flex", alignItems: "center", justifyContent: "space-between", height: "3.5rem" }}>
+          <Link href="/" style={{ fontFamily: "var(--font-display)", fontSize: "1.25rem", color: "var(--color-ink-900)", textDecoration: "none", letterSpacing: "-0.01em" }}>
+            Mr.Wam
+          </Link>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+            {authed && (
+              <>
+                <Link href="/forms" style={{ fontSize: "0.72rem", color: "var(--color-ink-900)", letterSpacing: "0.1em", textTransform: "uppercase" as const, textDecoration: "none", fontWeight: 500 }}>
+                  Forms
+                </Link>
+                <Link href="/profile" style={{ display: "flex", alignItems: "center", gap: "0.5rem", textDecoration: "none" }}>
+                  <div style={{
+                    width: "30px", height: "30px", borderRadius: "50%",
+                    background: "var(--color-ink-900)", color: "var(--color-gold)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: "0.7rem", fontWeight: 600, fontFamily: "var(--font-display)",
+                  }}>
+                    {initials}
+                  </div>
+                  <span style={{ fontSize: "0.75rem", color: "var(--color-ink-600)" }}>
+                    {displayName}
+                  </span>
+                </Link>
+                <button
+                  onClick={logout}
+                  style={{ fontSize: "0.72rem", color: "var(--color-ink-400)", letterSpacing: "0.1em", textTransform: "uppercase" as const, background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                >
+                  Sign out
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      <main id="main-content" style={{ maxWidth: "900px", margin: "0 auto", padding: "2.5rem 1rem" }}>
 
         {/* Header */}
-        <div className="page-header flex items-end justify-between">
-          <div>
-            <h1 className="page-title">Available Forms</h1>
-            <p className="page-subtitle">
-              {userName
-                ? `Welcome back, ${userName}`
-                : "Select a form below to begin your submission"}
-            </p>
-          </div>
-          {authed ? (
-            <button
-              onClick={logout}
-              className="text-xs font-mono tracking-widest uppercase transition-colors"
-              style={{ color: "var(--color-ink-400)", background:"none", border:"none", cursor:"pointer" }}
-            >
-              Sign out
-            </button>
-          ) : (
-            <Link
-              href="/login"
-              className="text-xs font-mono tracking-widest uppercase transition-colors"
-              style={{ color: "var(--color-ink-400)", textDecoration:"none" }}
-            >
-              Sign in
-            </Link>
-          )}
+        <div className="page-header">
+          <h1 className="page-title">Available Forms</h1>
+          <p className="page-subtitle">
+            {userName
+              ? `Welcome back, ${userName}`
+              : "Select a form below to begin your submission"}
+          </p>
         </div>
 
         {/* Loading skeleton */}
