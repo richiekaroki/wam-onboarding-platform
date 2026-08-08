@@ -51,8 +51,8 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 ALLOWED_HOSTS=localhost,127.0.0.1
 CORS_ALLOWED_ORIGINS=http://localhost:3000
 FRONTEND_URL=http://localhost:3000
-DJANGO_ADMIN_EMAIL=admin@mrwam.com
-DJANGO_ADMIN_PASSWORD=admin123
+DJANGO_ADMIN_EMAIL=admin@example.com
+DJANGO_ADMIN_PASSWORD=your-secure-password
 ```
 
 Run migrations and start:
@@ -115,7 +115,7 @@ First admin is created via environment variable:
 
 ```bash
 # Set in .env or Render environment
-DJANGO_ADMIN_EMAIL=admin@mrwam.com
+DJANGO_ADMIN_EMAIL=admin@example.com
 DJANGO_ADMIN_PASSWORD=your-secure-password
 
 # Run once (auto-runs on first deploy via start.sh)
@@ -145,10 +145,10 @@ DEBUG=False
 SECRET_KEY=<new-key>
 DATABASE_URL=<render-connection-string>
 FRONTEND_URL=https://onboarding-frontend.vercel.app
-DJANGO_ADMIN_EMAIL=admin@actserv.local
+DJANGO_ADMIN_EMAIL=admin@yourdomain.com
 DJANGO_ADMIN_PASSWORD=<secure-password>
-DEFAULT_FROM_EMAIL=karokirichard522@gmail.com
-ADMIN_NOTIFICATION_EMAILS=karokirichard522@gmail.com
+DEFAULT_FROM_EMAIL=noreply@yourdomain.com
+ADMIN_NOTIFICATION_EMAILS=admin@yourdomain.com
 BREVO_API_KEY=<your-brevo-api-key>
 ```
 

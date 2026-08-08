@@ -40,11 +40,11 @@ services:
       - key: FRONTEND_URL
         value: https://onboarding-frontend.vercel.app
       - key: DJANGO_ADMIN_EMAIL
-        value: admin@actserv.local
+        value: admin@yourdomain.com
       - key: DEFAULT_FROM_EMAIL
-        value: karokirichard522@gmail.com
+        value: noreply@yourdomain.com
       - key: ADMIN_NOTIFICATION_EMAILS
-        value: karokirichard522@gmail.com
+        value: admin@yourdomain.com
       - key: EMAIL_BACKEND
         value: django.core.mail.backends.smtp.EmailBackend
       - key: EMAIL_HOST
