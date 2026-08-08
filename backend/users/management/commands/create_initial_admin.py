@@ -10,6 +10,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         User = get_user_model()
         email = os.environ.get('DJANGO_ADMIN_EMAIL', '').lower().strip()
+        admin_password = os.environ.get('DJANGO_ADMIN_PASSWORD', 'admin123')
 
         if not email:
             self.stdout.write(self.style.ERROR(
@@ -33,11 +34,13 @@ class Command(BaseCommand):
         )
 
         if created:
-            user.set_unusable_password()
+            user.set_password(admin_password)
             user.save()
             self.stdout.write(self.style.SUCCESS(
                 f'Created admin: {email}\n'
-                f'Log in via magic link at your frontend URL.'
+                f'Django admin password: {admin_password}\n'
+                f'Log in at: https://actserv-backend.onrender.com/admin/\n'
+                f'Change this password immediately after first login!'
             ))
         else:
             # User exists — promote to admin if not already
@@ -51,6 +54,13 @@ class Command(BaseCommand):
             if not user.is_superuser:
                 user.is_superuser = True
                 changed = True
+            # Ensure they have a usable password
+            if not user.has_usable_password():
+                user.set_password(admin_password)
+                changed = True
+                self.stdout.write(self.style.SUCCESS(
+                    f'Set Django admin password for {email}: {admin_password}'
+                ))
             if changed:
                 user.save()
                 self.stdout.write(self.style.SUCCESS(
