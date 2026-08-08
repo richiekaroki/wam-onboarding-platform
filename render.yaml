@@ -21,7 +21,6 @@ services:
     dockerfilePath: backend/Dockerfile
     dockerContext: backend
     plan: free
-    preDeployCommand: "python manage.py migrate --noinput"
     healthCheckPath: /
     envVars:
       - key: DEBUG
