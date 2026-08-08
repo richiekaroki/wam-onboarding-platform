@@ -18,12 +18,22 @@ from users.auth_views import (
 
 
 def health_check(request):
-    """Simple liveness probe — useful for Docker / load balancers."""
+    """Liveness probe with DB ping — useful for Docker / load balancers."""
+    import django.db
+    db_ok = True
+    try:
+        with django.db.connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+    except Exception:
+        db_ok = False
+
+    status_code = 200 if db_ok else 503
     return JsonResponse({
-        "status": "ok",
+        "status": "ok" if db_ok else "degraded",
         "service": "mrwam-backend",
         "version": "1.0.0",
-    })
+        "database": "connected" if db_ok else "unavailable",
+    }, status=status_code)
 
 
 urlpatterns = [

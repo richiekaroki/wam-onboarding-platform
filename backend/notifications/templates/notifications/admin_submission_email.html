@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 40px 0;">
+    <tr>
+      <td align="center">
+        <table width="480" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+          <tr>
+            <td style="background-color: #1a1a2e; padding: 32px 40px;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600;">Mr.Wam</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px;">
+              <h2 style="margin: 0 0 16px; color: #1a1a2e; font-size: 20px; font-weight: 600;">New Submission Received</h2>
+              <p style="margin: 0 0 24px; color: #555555; font-size: 15px; line-height: 1.6;">
+                A new form submission requires your review.
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 24px; background-color: #f9f9f9; border-radius: 4px;">
+                <tr>
+                  <td style="padding: 16px;">
+                    <p style="margin: 0 0 8px; color: #555555; font-size: 14px;"><strong>Form:</strong> {{ form_name }}</p>
+                    <p style="margin: 0 0 8px; color: #555555; font-size: 14px;"><strong>Client:</strong> {{ client }}</p>
+                    <p style="margin: 0 0 8px; color: #555555; font-size: 14px;"><strong>Submitted:</strong> {{ submitted_at }}</p>
+                    <p style="margin: 0; color: #555555; font-size: 14px;"><strong>ID:</strong> {{ submission_id }}</p>
+                  </td>
+                </tr>
+              </table>
+              <table cellpadding="0" cellspacing="0" style="margin: 0 0 24px;">
+                <tr>
+                  <td style="background-color: #c9a84c; border-radius: 4px;">
+                    <a href="{{ dashboard_url }}" style="display: inline-block; padding: 14px 36px; color: #1a1a2e; font-size: 15px; font-weight: 600; text-decoration: none;">Review Submission</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 24px 40px; background-color: #f9f9f9; border-top: 1px solid #eeeeee;">
+              <p style="margin: 0; color: #999999; font-size: 12px; line-height: 1.5;">
+                This is an automated notification from Mr.Wam Onboarding Platform.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

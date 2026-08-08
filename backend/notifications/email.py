@@ -5,6 +5,7 @@ import logging
 import urllib.request
 
 from django.conf import settings
+from django.template.loader import render_to_string
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,14 @@ def send_admin_submission_email(*, form_name: str, submission_id: str, client: s
         return False
 
     subject = f"New {form_name} Submission Received"
+    dashboard_url = f"{settings.FRONTEND_URL}/admin"
+    html = render_to_string('notifications/admin_submission_email.html', {
+        'form_name': form_name,
+        'client': client,
+        'submitted_at': submitted_at,
+        'submission_id': submission_id,
+        'dashboard_url': dashboard_url,
+    })
     text = (
         f"A new form submission has been received.\n\n"
         f"Form:           {form_name}\n"
@@ -68,7 +77,7 @@ def send_admin_submission_email(*, form_name: str, submission_id: str, client: s
 
     results = []
     for email in admin_emails:
-        results.append(send_email(to=email, subject=subject, text=text))
+        results.append(send_email(to=email, subject=subject, text=text, html=html))
     return any(results)
 
 
@@ -81,34 +90,39 @@ def send_client_status_email(*, to: str, form_name: str, submission_id: str,
         'approved': 'Approved',
         'rejected': 'Rejected',
     }
+    status_colors = {
+        'submitted': '#1e40af',
+        'reviewed': '#92400e',
+        'approved': '#065f46',
+        'rejected': '#991b1b',
+    }
+    status_messages = {
+        'approved': 'Your submission has been approved. No further action is required.',
+        'rejected': 'Your submission was not approved. Please review the feedback and resubmit if necessary.',
+        'reviewed': 'Your submission is now being reviewed by our team. You will be notified once a decision has been made.',
+        'submitted': 'Your submission has been received and is pending review.',
+    }
     label = status_labels.get(new_status, new_status)
+    color = status_colors.get(new_status, '#555555')
+    message = status_messages.get(new_status, 'Thank you for your submission.')
 
     subject = f"Your {form_name} submission has been {label}"
+    submissions_url = f"{settings.FRONTEND_URL}/submissions"
+    html = render_to_string('notifications/client_status_email.html', {
+        'form_name': form_name,
+        'submission_id': submission_id,
+        'status_label': label,
+        'status_color': color,
+        'status_message': message,
+        'submissions_url': submissions_url,
+    })
     text = (
         f"Hello,\n\n"
         f"Your submission for \"{form_name}\" has been updated.\n\n"
         f"Submission ID:  {submission_id}\n"
         f"New Status:     {label}\n\n"
+        f"{message}\n\n"
+        f"Thank you,\nMr.Wam Team"
     )
 
-    if new_status == 'approved':
-        text += (
-            f"Your submission has been approved. No further action is required.\n\n"
-            f"Thank you,\nMr.Wam Team"
-        )
-    elif new_status == 'rejected':
-        text += (
-            f"Your submission was not approved. Please review the feedback "
-            f"and resubmit if necessary.\n\n"
-            f"Thank you,\nMr.Wam Team"
-        )
-    elif new_status == 'reviewed':
-        text += (
-            f"Your submission is now being reviewed by our team. "
-            f"You will be notified once a decision has been made.\n\n"
-            f"Thank you,\nMr.Wam Team"
-        )
-    else:
-        text += f"Thank you,\nMr.Wam Team"
-
-    return send_email(to=to, subject=subject, text=text)
+    return send_email(to=to, subject=subject, text=text, html=html)

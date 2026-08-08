@@ -337,6 +337,11 @@ export async function getFormStats(): Promise<any> {
   return response.data;
 }
 
+export async function bulkUpdateStatus(ids: string[], status: string): Promise<any> {
+  const response = await getApiInstance().post("/submissions/bulk-status/", { ids, status });
+  return response.data;
+}
+
 // ── Notifications ──────────────────────────────────────────────────────────
 export async function getNotifications() {
   const response = await getApiInstance().get("/notifications/");

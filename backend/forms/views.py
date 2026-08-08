@@ -261,10 +261,23 @@ class SubmissionViewSet(viewsets.ModelViewSet):
     def update_status(self, request, pk=None):
         submission = self.get_queryset().select_for_update().get(pk=pk)
         new_status = request.data.get('status')
+        old_status = submission.status
         try:
             submission = update_submission_status(submission=submission, new_status=new_status)
         except ValueError as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Audit log
+        from audit.models import log_action
+        log_action(
+            user=request.user,
+            action='status_change',
+            resource_type='submission',
+            resource_id=str(submission.id),
+            details={'old_status': old_status, 'new_status': new_status},
+            ip_address=request.META.get('REMOTE_ADDR'),
+        )
+
         return Response(SubmissionSerializer(submission).data)
 
     @action(detail=True, methods=['get'], url_path='export-pdf')
@@ -284,3 +297,37 @@ class SubmissionViewSet(viewsets.ModelViewSet):
         filename = f'submission-{str(submission.id)[:8]}.pdf'
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
+
+    @action(detail=False, methods=['post'], url_path='bulk-status', permission_classes=[IsAdminUser])
+    def bulk_status(self, request):
+        """Bulk update submission statuses.
+        Body: { "ids": ["uuid1", "uuid2"], "status": "approved" }
+        """
+        ids = request.data.get('ids', [])
+        new_status = request.data.get('status')
+        valid_statuses = [s[0] for s in Submission.STATUS_CHOICES]
+
+        if not ids or not new_status:
+            return Response({'detail': 'ids and status are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if new_status not in valid_statuses:
+            return Response({'detail': f'Invalid status. Choose from: {valid_statuses}'}, status=status.HTTP_400_BAD_REQUEST)
+
+        submissions = Submission.objects.filter(id__in=ids)
+        updated = 0
+        for sub in submissions:
+            old_status = sub.status
+            update_submission_status(submission=sub, new_status=new_status)
+            updated += 1
+
+            # Audit log
+            from audit.models import log_action
+            log_action(
+                user=request.user,
+                action='bulk_status_change',
+                resource_type='submission',
+                resource_id=str(sub.id),
+                details={'old_status': old_status, 'new_status': new_status},
+                ip_address=request.META.get('REMOTE_ADDR'),
+            )
+
+        return Response({'detail': f'{updated} submission(s) updated to {new_status}.'})

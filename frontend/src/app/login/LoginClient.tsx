@@ -3,7 +3,7 @@
 
 import { requestMagicLink } from "@/lib/api";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export default function LoginPage() {
   const [step, setStep] = useState<"name" | "email" | "sent">("name");
@@ -12,6 +12,28 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [countdown, setCountdown] = useState(0);
+
+  // Countdown timer for resend
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
+  const handleResend = useCallback(async () => {
+    if (countdown > 0 || loading) return;
+    setLoading(true);
+    setError("");
+    try {
+      await requestMagicLink(email, firstName, lastName);
+      setCountdown(60);
+    } catch {
+      setError("Failed to resend. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [email, firstName, lastName, countdown, loading]);
 
   function handleNameNext(e: React.FormEvent) {
     e.preventDefault();
@@ -256,12 +278,35 @@ export default function LoginPage() {
               <p className="text-xs" style={{ color: "var(--color-ink-400)", marginBottom: "2rem" }}>
                 The link expires in 10 minutes. Check your spam folder if you don&apos;t see it.
               </p>
-              <button
-                onClick={() => { setStep("email"); setEmail(""); }}
-                style={{ margin: "0 auto", display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.5rem", border: "1px solid #C9CDD4", color: "#1F2937", fontSize: "0.875rem", fontWeight: 500, background: "transparent", cursor: "pointer", borderRadius: "4px" }}
-              >
-                Use a different email
-              </button>
+              
+              {/* Resend button with countdown */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem", alignItems: "center" }}>
+                {countdown > 0 ? (
+                  <p className="text-xs" style={{ color: "var(--color-ink-400)" }}>
+                    Resend available in {countdown}s
+                  </p>
+                ) : (
+                  <button
+                    onClick={handleResend}
+                    disabled={loading}
+                    style={{
+                      margin: "0 auto", display: "inline-flex", alignItems: "center", gap: "0.5rem",
+                      padding: "0.75rem 1.5rem", border: "1px solid #C9A84C", color: "#C9A84C",
+                      fontSize: "0.875rem", fontWeight: 500, background: "transparent",
+                      cursor: loading ? "not-allowed" : "pointer", borderRadius: "4px",
+                      opacity: loading ? 0.4 : 1,
+                    }}
+                  >
+                    {loading ? "Sending..." : "Resend link"}
+                  </button>
+                )}
+                <button
+                  onClick={() => { setStep("email"); setEmail(""); setCountdown(0); }}
+                  style={{ margin: "0 auto", display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.5rem", border: "1px solid #C9CDD4", color: "#1F2937", fontSize: "0.875rem", fontWeight: 500, background: "transparent", cursor: "pointer", borderRadius: "4px" }}
+                >
+                  Use a different email
+                </button>
+              </div>
             </div>
           )}
         </div>

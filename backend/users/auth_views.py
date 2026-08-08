@@ -1,5 +1,6 @@
 # backend/users/auth_views.py
 import logging
+import time
 
 from rest_framework import status
 from rest_framework.request import Request
@@ -11,6 +12,10 @@ from .models import CustomUser, MagicLinkToken
 from .email import send_magic_link_email
 
 logger = logging.getLogger(__name__)
+
+# Simple in-memory rate limiter: {email: last_request_timestamp}
+_rate_limit_cache: dict[str, float] = {}
+RATE_LIMIT_SECONDS = 60  # 1 request per minute per email
 
 
 def _cookie_kwargs() -> dict:
@@ -61,6 +66,17 @@ class RequestMagicLinkView(APIView):
                 {'detail': 'Email is required.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        # Rate limit: 1 request per minute per email
+        now = time.time()
+        last_request = _rate_limit_cache.get(email, 0)
+        if now - last_request < RATE_LIMIT_SECONDS:
+            remaining = int(RATE_LIMIT_SECONDS - (now - last_request))
+            return Response(
+                {'detail': f'Please wait {remaining} seconds before requesting another link.'},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+        _rate_limit_cache[email] = now
 
         # Invalidate any existing unused tokens for this email
         MagicLinkToken.objects.filter(email=email, used=False).update(used=True)

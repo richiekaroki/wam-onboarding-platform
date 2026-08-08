@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'forms',
     'notifications',
     'users',
+    'audit',
 ]
 
 AUTH_USER_MODEL = 'users.CustomUser'
