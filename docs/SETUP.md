@@ -8,10 +8,9 @@ How to set up and run the Mr.Wam Onboarding Platform locally.
 
 - **Python 3.13+**
 - **Node.js 20+**
-- **Redis** (for Celery broker)
 - **PostgreSQL 14+** (or SQLite for local dev)
 - **Git**
-- **Gmail App Password** (for magic link emails in production)
+- **Brevo account** (for transactional emails in production)
 
 Optional: Docker & Docker Compose
 
@@ -53,6 +52,7 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 CORS_ALLOWED_ORIGINS=http://localhost:3000
 FRONTEND_URL=http://localhost:3000
 DJANGO_ADMIN_EMAIL=admin@mrwam.com
+DJANGO_ADMIN_PASSWORD=admin123
 ```
 
 Run migrations and start:
@@ -89,21 +89,25 @@ docker-compose up --build
 Services:
 - Django backend → http://localhost:8000
 - Next.js frontend → http://localhost:3000
-- Redis → localhost:6379
 
 ---
 
 ## Authentication
 
-Mr.Wam uses **passwordless magic link** authentication. No passwords are stored.
+Mr.Wam uses **passwordless magic link** authentication. No passwords are stored for end users.
 
 ### How it works
 
-1. User enters email at `/login`
-2. Backend sends a one-time link via Gmail SMTP
-3. User clicks link → `/auth/verify?token=<uuid>`
-4. Backend validates token, creates user if new, returns JWT
-5. Access token stored in memory, refresh token in HttpOnly cookie
+1. User enters name at `/login`, then email
+2. Backend rate-limits to 1 request per minute per email
+3. Backend sends a branded HTML email via Brevo HTTP API
+4. User clicks link → `/auth/verify?token=<uuid>`
+5. Backend validates token, creates user if new, returns JWT
+6. Access token stored in memory, refresh token in HttpOnly cookie
+
+### Two-Step Login
+
+The login flow collects the user's name first, then their email. This allows personalization (greeting, nav bar) without requiring a separate registration step.
 
 ### Admin Bootstrap
 
@@ -112,12 +116,13 @@ First admin is created via environment variable:
 ```bash
 # Set in .env or Render environment
 DJANGO_ADMIN_EMAIL=admin@mrwam.com
+DJANGO_ADMIN_PASSWORD=your-secure-password
 
 # Run once (auto-runs on first deploy via start.sh)
 python manage.py create_initial_admin
 ```
 
-Subsequent admin promotion: Django Admin → Users → change role to Admin.
+The command sets `is_staff=True`, `is_superuser=True`, and a usable password. Subsequent admin promotion: Django Admin → Users → change role to Admin.
 
 ---
 
@@ -127,8 +132,8 @@ Subsequent admin promotion: Django Admin → Users → change role to Admin.
 |---------|-----|---------|
 | Frontend | https://onboarding-frontend.vercel.app | Vercel |
 | Backend | https://actserv-backend.onrender.com | Render |
-| Database | Neon.tech PostgreSQL | Neon.tech |
-| Cache | Upstash Redis | Upstash |
+| Database | PostgreSQL (Render) | Render |
+| Email | Brevo HTTP API | Brevo |
 
 ### Environment Variables (Render)
 
@@ -138,13 +143,32 @@ Key variables:
 ```
 DEBUG=False
 SECRET_KEY=<new-key>
-DATABASE_URL=<neon-connection-string>
-REDIS_URL=<upstash-redis-url>
+DATABASE_URL=<render-connection-string>
 FRONTEND_URL=https://onboarding-frontend.vercel.app
 DJANGO_ADMIN_EMAIL=admin@actserv.local
-EMAIL_HOST_USER=<your-gmail>
-EMAIL_HOST_PASSWORD=<gmail-app-password>
+DJANGO_ADMIN_PASSWORD=<secure-password>
+DEFAULT_FROM_EMAIL=karokirichard522@gmail.com
+ADMIN_NOTIFICATION_EMAILS=karokirichard522@gmail.com
+BREVO_API_KEY=<your-brevo-api-key>
 ```
+
+### Email (Brevo)
+
+All transactional emails (magic links, admin notifications, status alerts) are sent via Brevo's HTTP API. The sender email must be verified in your Brevo account.
+
+- **Magic link emails:** Sent from `users/email.py`
+- **Admin notifications:** Sent from `notifications/email.py` (new submission alerts)
+- **Client status alerts:** Sent from `notifications/email.py` (status change alerts)
+- **HTML templates:** `notifications/templates/notifications/`
+
+### Cron Jobs (Render)
+
+Two cron jobs are defined in `render.yaml`:
+
+| Job | Schedule | Command | Description |
+|-----|----------|---------|-------------|
+| `check-escalations` | Daily 9am UTC | `python manage.py check_escalations` | Sends deadline reminder emails |
+| `check-backups` | Daily 8am UTC | `python manage.py check_backups` | DB health check |
 
 ---
 
@@ -170,6 +194,7 @@ npm run test
 ## Notes
 
 - Local dev uses SQLite (no PostgreSQL setup needed)
-- Production uses Neon.tech PostgreSQL (free tier, no expiration)
-- File uploads stored locally in `backend/media/` (production uses Supabase Storage when configured)
+- Production uses Render PostgreSQL
+- File uploads stored locally in `backend/media/`
 - API documentation available at `/api/schema/swagger/`
+- Celery is not used on Render free tier — all tasks have synchronous fallbacks

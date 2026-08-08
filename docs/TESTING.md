@@ -27,18 +27,20 @@ pytest --cov --cov-report=html
 pytest tests/test_forms_api.py -v
 pytest tests/test_auth.py -v
 pytest tests/test_notifications.py -v
+pytest tests/test_submissions_api.py -v
 ```
 
 ### Test Files
 
 | File | Tests |
 |------|-------|
-| `tests/test_forms_api.py` | Form CRUD, permissions, field management |
-| `tests/test_auth.py` | Magic link request, verify, token refresh, logout |
-| `tests/test_submissions_api.py` | Submission creation, file upload, status |
+| `tests/test_forms_api.py` | Form CRUD, permissions, field management, assignments, stats |
+| `tests/test_auth.py` | Magic link request, verify, token refresh, logout, rate limiting |
+| `tests/test_submissions_api.py` | Submission creation, file upload, status changes, bulk status, PDF export |
 | `tests/test_notifications.py` | Email alerts, escalation tasks |
-| `tests/test_models.py` | Model methods, relationships |
+| `tests/test_models.py` | Model methods, relationships, schema versioning |
 | `tests/test_celery_integration.py` | Async task execution |
+| `tests/test_api.py` | General API tests |
 
 ---
 
@@ -53,10 +55,10 @@ npm run test
 
 | File | Tests |
 |------|-------|
-| `FormRenderer.test.tsx` | Form rendering, field types |
+| `FormRenderer.test.tsx` | Form rendering, field types, conditional logic |
 | `FieldTypes.test.tsx` | Input, select, file, currency fields |
 | `FileValidation.test.tsx` | File size, type validation |
-| `ConditionalValidation.test.tsx` | Conditional field logic |
+| `ConditionalValidation.test.tsx` | Conditional field show/hide logic |
 | `api.test.ts` | API client functions |
 
 ---
@@ -68,13 +70,17 @@ Browser-based testing to verify UI renders correctly across pages and screen siz
 ### Test Flow
 
 1. **Home page** — Verify unauthenticated state shows "Sign in"
-2. **Login** — Test email input, magic link request, redirect to "check your email"
+2. **Login** — Test two-step flow (name → email), magic link request, resend countdown
 3. **Verify** — Test magic link callback, auto-login, redirect to dashboard
-4. **Admin dashboard** — Verify stats, empty state, navigation
-5. **Logout** — Confirm cookies cleared, redirect to login
-6. **Auth guard** — Verify `/admin` blocks access after logout
-7. **Forms page** — Verify "Sign in" shows when unauthenticated
-8. **Mobile** — Test responsive layout at 375px width
+4. **Admin dashboard** — Verify stats cards, form list, navigation
+5. **Form builder** — Test visual builder, conditional logic UI, field types
+6. **Form renderer** — Test form filling, conditional field visibility, file upload progress
+7. **Submissions** — Test list view, PDF download, status badges
+8. **Profile** — Test name editing
+9. **Dark mode** — Test toggle persistence
+10. **Mobile** — Test responsive hamburger nav at 375px width
+11. **Logout** — Confirm cookies cleared, redirect to login
+12. **Auth guard** — Verify `/admin` blocks access after logout
 
 ### Bugs Found and Fixed
 
@@ -84,6 +90,9 @@ Browser-based testing to verify UI renders correctly across pages and screen siz
 | "Sign out" links didn't call `logout()` | Replaced `<Link>` with `<button onClick={logout}>` |
 | Forms page showed "Sign out" when not logged in | Conditionally render based on auth state |
 | Login logo not clickable | Wrapped in `<Link href="/">` |
+| Broken `assigned_to.child.queryset` in serializer | Removed nested child query, use flat assigned_to field |
+| Missing `get_user_model` import in views | Added import at top of `forms/views.py` |
+| Admin unusable password | `create_initial_admin` now sets password from env var |
 
 ---
 
