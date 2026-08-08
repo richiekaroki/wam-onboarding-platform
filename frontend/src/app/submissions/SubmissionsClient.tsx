@@ -4,6 +4,8 @@
 import { getSubmissions, getCurrentUser, loadCurrentUser, logout, isAuthenticated, exportSubmissionPdf } from "@/lib/api";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import MobileNav from "@/components/MobileNav";
+import ThemeToggle from "@/components/ThemeToggle";
 
 interface Submission {
   id: string;
@@ -107,7 +109,8 @@ export default function SubmissionsClient() {
             Mr.Wam
           </Link>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+          {/* Desktop nav */}
+          <div className="hidden lg:flex" style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
             {authed && (
               <>
                 <Link href="/forms" style={{ fontSize: "0.72rem", color: "var(--color-ink-900)", letterSpacing: "0.1em", textTransform: "uppercase" as const, textDecoration: "none", fontWeight: 500 }}>
@@ -116,6 +119,7 @@ export default function SubmissionsClient() {
                 <Link href="/submissions" style={{ fontSize: "0.72rem", color: "var(--color-gold)", letterSpacing: "0.1em", textTransform: "uppercase" as const, textDecoration: "none", fontWeight: 600, borderBottom: "2px solid var(--color-gold)", paddingBottom: "2px" }}>
                   My Submissions
                 </Link>
+                <ThemeToggle />
                 <Link href="/profile" style={{ display: "flex", alignItems: "center", gap: "0.5rem", textDecoration: "none" }}>
                   <div style={{
                     width: "30px", height: "30px", borderRadius: "50%",
@@ -138,6 +142,20 @@ export default function SubmissionsClient() {
               </>
             )}
           </div>
+
+          {/* Mobile nav */}
+          {authed && (
+            <MobileNav
+              items={[
+                { href: "/forms", label: "Forms" },
+                { href: "/submissions", label: "My Submissions", active: true },
+                { href: "/profile", label: "Profile" },
+              ]}
+              onLogout={logout}
+              userInitials={initials}
+              userName={displayName}
+            />
+          )}
         </div>
       </nav>
 

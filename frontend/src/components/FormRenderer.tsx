@@ -39,7 +39,8 @@ interface Props {
   onSubmit: (
     formId: string,
     textValues: Record<string, unknown>,
-    files: Record<string, File | File[]>
+    files: Record<string, File | File[]>,
+    onProgress?: (progress: { current: number; total: number; fieldKey: string }) => void
   ) => Promise<void>;
 }
 
@@ -274,6 +275,7 @@ export default function FormRenderer({ fields, formId, maxFileSize, onSubmit }: 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number; fieldKey: string } | null>(null);
   const errorRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -309,8 +311,9 @@ export default function FormRenderer({ fields, formId, maxFileSize, onSubmit }: 
         }
       }
 
-      await onSubmit(formId, textValues, files);
+      await onSubmit(formId, textValues, files, setUploadProgress);
       setSubmitSuccess(true);
+      setUploadProgress(null);
       reset();
       setTimeout(() => setSubmitSuccess(false), 6000);
     } catch (error: unknown) {
@@ -382,12 +385,37 @@ export default function FormRenderer({ fields, formId, maxFileSize, onSubmit }: 
                   display: "inline-block",
                 }}
               />
-              Submitting…
+              {uploadProgress
+                ? `Uploading file ${uploadProgress.current}/${uploadProgress.total}…`
+                : "Submitting…"
+              }
             </span>
           ) : (
             "Submit form"
           )}
         </button>
+
+        {/* Upload progress bar */}
+        {uploadProgress && uploadProgress.total > 1 && (
+          <div style={{ marginTop: "0.75rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.25rem" }}>
+              <span className="text-xs" style={{ color: "var(--color-ink-500)" }}>
+                Uploading files
+              </span>
+              <span className="text-xs" style={{ color: "var(--color-ink-500)" }}>
+                {uploadProgress.current} of {uploadProgress.total}
+              </span>
+            </div>
+            <div style={{ height: "4px", background: "var(--color-ink-100)", borderRadius: "2px", overflow: "hidden" }}>
+              <div style={{
+                height: "100%",
+                width: `${(uploadProgress.current / uploadProgress.total) * 100}%`,
+                background: "var(--color-gold)",
+                transition: "width 0.3s ease",
+              }} />
+            </div>
+          </div>
+        )}
       </form>
     </div>
   );

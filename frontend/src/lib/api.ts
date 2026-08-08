@@ -277,7 +277,8 @@ export async function deleteField(formSlug: string, fieldId: string) {
 export async function submitForm(
   formId: string,
   textValues: Record<string, unknown>,
-  files: Record<string, File | File[]>
+  files: Record<string, File | File[]>,
+  onProgress?: (progress: { current: number; total: number; fieldKey: string }) => void
 ): Promise<{ id: string }> {
   // Step 1: create submission (JSON only — no multipart here)
   const api = getApiInstance();
@@ -289,9 +290,15 @@ export async function submitForm(
 
   // Step 2: upload each file to the dedicated upload endpoint
   // Skip if user is not authenticated (backend requires auth for file uploads)
-  for (const [fieldKey, fileOrFiles] of Object.entries(files)) {
+  const fileEntries = Object.entries(files);
+  let currentFile = 0;
+  const totalFiles = fileEntries.reduce((sum, [, v]) => sum + (Array.isArray(v) ? v.length : 1), 0);
+
+  for (const [fieldKey, fileOrFiles] of fileEntries) {
         const fileList = Array.isArray(fileOrFiles) ? fileOrFiles : [fileOrFiles];
         for (const file of fileList) {
+          currentFile++;
+          onProgress?.({ current: currentFile, total: totalFiles, fieldKey });
           const fd = new FormData();
           fd.append("field_key", fieldKey);
           fd.append("file", file);
