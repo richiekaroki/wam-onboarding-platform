@@ -112,7 +112,7 @@ export default function LoginPage() {
                     autoFocus
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="e.g. Richard"
+                    placeholder="John"
                     required
                     className="input"
                   />
@@ -126,7 +126,7 @@ export default function LoginPage() {
                     autoComplete="family-name"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    placeholder="e.g. Kabue"
+                    placeholder="Doe"
                     required
                     className="input"
                   />
@@ -181,7 +181,7 @@ export default function LoginPage() {
                     autoFocus
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@mrwam.com"
+                    placeholder="johndoe@gmail.com"
                     required
                     className="input"
                   />
