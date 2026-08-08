@@ -33,8 +33,6 @@ services:
         fromDatabase:
           name: actserv-db
           property: connectionString
-      - key: REDIS_URL
-        sync: false
       - key: ALLOWED_HOSTS
         value: actserv-backend.onrender.com
       - key: CORS_ALLOWED_ORIGINS
@@ -43,14 +41,10 @@ services:
         value: https://onboarding-frontend.vercel.app
       - key: DJANGO_ADMIN_EMAIL
         value: admin@actserv.local
-      - key: DJANGO_ADMIN_PASSWORD
-        sync: false
       - key: DEFAULT_FROM_EMAIL
         value: karokirichard522@gmail.com
       - key: ADMIN_NOTIFICATION_EMAILS
         value: karokirichard522@gmail.com
-      - key: BREVO_API_KEY
-        sync: false
 
 databases:
   - name: actserv-db
@@ -75,8 +69,6 @@ cronJobs:
         generateValue: true
       - key: DEBUG
         value: "False"
-      - key: REDIS_URL
-        sync: false
 
   - name: check-backups
     runtime: docker
@@ -94,5 +86,3 @@ cronJobs:
         generateValue: true
       - key: DEBUG
         value: "False"
-      - key: REDIS_URL
-        sync: false
