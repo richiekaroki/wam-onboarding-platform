@@ -30,12 +30,6 @@ class FormSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ('id', 'created_at', 'updated_at', 'schema_version')
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Lazy import to avoid circular import at module level
-        from users.models import CustomUser
-        self.fields['assigned_to'].child.queryset = CustomUser.objects.all()
-
 
 class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:  # pyrefly: ignore
